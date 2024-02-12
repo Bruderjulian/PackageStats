@@ -11,8 +11,10 @@ const {
 const printTree = require("./printTree.js");
 const scanDir = require("./scan.js");
 const terminal = require("./terminal.js");
+const url = require("url");
 const displayEntry = import("../src/displayEntry.mjs");
 
+var server;
 var help = `
         ${terminal.link(
           terminal.color("Usage", terminal.colors.fg.red),
@@ -109,6 +111,10 @@ var commands = {
   view: function (options) {
     startViewer(options.port);
   },
+  closeView: function () {
+    console.log("closed");
+    server.close();
+  },
   cleanup: function () {
     if (existFile("fileTree.json")) unlinkSync("fileTree.json");
   },
@@ -151,7 +157,7 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
   if (!validateIpAndPort(ip, (port = parseInt(port)))) {
     throw Error("Invalid IP or Port - " + ip + ":" + port);
   }
-  createServer(function (req, response) {
+  server = createServer(function (req, response) {
     var path = req.url.replace(/[^a-z0-9/.]/gi, "_").toLowerCase();
     if (path === "/") path = "./viewer/viewer.html";
     else if (path === "/filetree.json") path = "./fileTree.json";
@@ -172,7 +178,7 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
       }
     });
   }).listen(port, ip);
-  console.log("Starting Viewer on port");
+  console.log("Starting Viewer on", ip + ":" + port);
   console.log(
     terminal.link(
       terminal.color("View", terminal.colors.fg.red),
