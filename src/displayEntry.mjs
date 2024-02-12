@@ -1,12 +1,21 @@
-import * as fileTree from "../fileTree.json" assert { type: "json" };
-
+var fileTree;
 var cache = {};
-var parsedTree = JSON.parse(JSON.stringify(fileTree)).default;
+var parsedTree = fileTree
+  ? JSON.parse(JSON.stringify(fileTree)).default
+  : undefined;
 
 function displayEntry(name = "", tree) {
   if (cache.hasOwnProperty(name)) return cache[name];
+  if (!fileTree)
+    import("../fileTree.json").then(function (value) {
+      fileTree = value;
+      console.log(value);
+    });
   if (!fileTree) throw EvalError("Could not find FileTree");
-  if (!tree) tree = parsedTree || JSON.parse(JSON.stringify(fileTree)).default;
+  if (!tree) {
+    tree = parsedTree =
+      parsedTree || JSON.parse(JSON.stringify(fileTree)).default;
+  }
 
   var entry = findEntry(tree, "name", name);
   if (!entry) entry = findEntry(tree, "name", name, true);

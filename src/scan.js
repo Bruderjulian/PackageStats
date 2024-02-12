@@ -64,7 +64,7 @@ async function loopFolder(path, logging) {
   var files = [];
   for await (const dirent of dir) {
     var path = normalize(dirent.path, dirent.name);
-    if (path.includes("node_modules")) continue;
+    if (path.includes("node_modules") || path.includes(".git")) continue;
     if (isFile(path)) {
       files.push(scanFile(path));
     } else files.push(await scanFolder(path, logging));
