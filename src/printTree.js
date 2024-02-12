@@ -1,11 +1,5 @@
 const { isObject } = require("./utils.js");
 
-var treePattern = {
-  name: "string",
-  //level: "number",
-  contents: ["$pattern"],
-};
-
 function flatten(arr, result = []) {
   for (let i = 0, length = arr.length; i < length; i++) {
     if (Array.isArray(arr[i])) flatten(arr[i], result);
@@ -57,9 +51,7 @@ function generate(tree, end, depths = []) {
   return result;
 }
 
-function printTree(tree, connect = false) {
-  if (connect) return generate(tree);
+module.exports = function printTree(tree, connect = false) {
+  if (!connect) return generate(tree);
   else return stringifyTree(tree).join("\n");
-}
-
-module.exports = printTree;
+};

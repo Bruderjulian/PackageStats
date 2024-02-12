@@ -1,0 +1,77 @@
+
+@font-face {
+  font-family: "Space Mono";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/spacemono/v13/i7dPIFZifjKcF5UAWdDRYEF8RQ.woff2)
+    format("woff2");
+  font-display: swap;
+}
+
+html {
+  line-height: 1.15;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  font-family: "Space Mono";
+}
+
+pre {
+font-size: inherit;
+color: inherit;
+border: initial;
+padding: initial;
+font-family: inherit;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none;
+}
+
+.viewer {
+  margin: 0;
+  position: relative;
+  width: 100%;
+}
+
+.viewer .statsViewer {
+  background-color: #fff;
+  height: 100vh;
+  margin-left: 30%;
+  padding: 12px;
+  position: relative;
+  width: 70%;
+  display: block;
+}
+
+.viewer .statsViewer .output {
+  margin: 8px 0 0;
+}
+
+.viewer .treeViewer {
+  background-color: #ebedf0ff;
+  height: 100vh;
+  padding-left: 5px;
+  position: fixed;
+  width: 30%;
+}
+
+#source_info {
+  background-color: gray;
+  bottom: 0;
+  color: #fff;
+  margin: 0 0 0 -5px;
+  position: absolute;
+  width: 100%;
+}

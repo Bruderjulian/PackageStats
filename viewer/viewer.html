@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="PackageStats Viewer" />
+    <meta name="keywords" content="PackageStats, Viewer" />
+    <title>PackageStats Viewer</title>
+    <link rel="stylesheet" type="text/css" href="./assets/style.css" />
+    <link rel="stylesheet" type="text/css" href="./assets/file_tree.css" />
+  </head>
+  <body style="background-color: #fff">
+    <noscript>
+      <h1>Please enable JavaScript.</h1>
+    </noscript>
+    <div class="viewer">
+      <div class="treeViewer">
+        <h4>FOLDER Contains</h4>
+        <ul id="file_tree" class="file_tree"></ul>
+        <p id="source_info">Source: ERROR</p>
+      </div>
+
+      <div class="statsViewer">
+        <h4 class="output">Stats</h4>
+        <div class="request">
+          <h2 class="output_view"></h2>
+          <pre id="entry_info"></pre>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { parseFileTree, generateFileTree } from "./file_tree.js";
+      window.onload = function () {
+        generateFileTree();
+        parseFileTree("file_tree");
+      };
+    </script>
+  </body>
+</html>

@@ -1,5 +1,5 @@
-.file-list,
-.file-list ul {
+.file_tree,
+.file_tree ul {
   list-style-type: none;
   font-size: 1em;
   line-height: 1.8em;
@@ -7,19 +7,20 @@
   padding-left: 18px;
   border-left: 1px dotted #aaa;
 }
-.file-list li {
+
+.file_tree li {
   position: relative;
   padding-left: 25px;
 }
 
-.file-list li span {
+.file_tree li span {
   text-decoration: none;
   cursor: pointer;
 }
 
-.file-list li span:before {
+.file_tree li span:before {
   display: block;
-  content: ' ';
+  content: " ";
   width: 10px;
   height: 1px;
   position: absolute;
@@ -27,11 +28,12 @@
   top: 0.6em;
   left: -14px;
 }
-.file-list li:before {
+
+.file_tree li:before {
   list-style-type: none;
   font-family: FontAwesome;
   display: block;
-  content: url('./icons/file.svg');
+  content: url("./file.svg");
   position: absolute;
   top: 0;
   left: 0;
@@ -40,32 +42,38 @@
   font-size: 1.3em;
   color: #555;
 }
-.file-list .folder-root {
+
+.file_tree .folder_root {
   list-style-type: none;
 }
 
-.file-list .folder-root:before {
-  content: url('./icons/folder_close.svg');
+.file_tree .folder_root:before {
+  content: url("./folder_close.svg");
 }
-.file-list .folder-root.open:before {
-  content: url('./icons/folder_open.svg');
+
+.file_tree .folder_root.open:before {
+  content: url("./folder_open.svg");
 }
-li.folder-root ul {
+
+li.folder_root ul {
   transition: all 0.2s ease-in-out;
   overflow: hidden;
 }
-li.folder-root.closed > ul {
+
+li.folder_root.closed > ul {
   opacity: 0;
   max-height: 0;
 }
-li.folder-root.open > ul {
+
+li.folder_root.open > ul {
   opacity: 1;
   display: block;
   max-height: 1000px;
 }
+
 @media screen and (max-width: 1024px) and (min-width: 768px) {
-  .file-list,
-  .file-list ul {
+  .file_tree,
+  .file_tree ul {
     margin-left: 3px;
     padding-left: 13px;
   }

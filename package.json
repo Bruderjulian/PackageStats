@@ -1,9 +1,30 @@
 {
   "name": "packagestats",
-  "version": "1.0.0",
-  "description": "",
+  "version": "3.0.0",
+  "description": "displays statistics about your package",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "cli": "node --no-warnings index.js",
+    "version": "node --no-warnings index.js packageInfo --select=version",
+    "view": "node --no-warnings index.js view",
+    "uninstall": "node --no-warnings index.js cleanup",
+    "help": "node --no-warnings index.js help"
+  },
   "author": "Julian",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bruderjulian/PackageStats.git"
+  },
+  "keywords": [
+    "package",
+    "viewer",
+    "scanner",
+    "packageStats",
+    "stats"
+  ],
+  "bugs": {
+    "url": "https://github.com/Bruderjulian/PackageStats/issues"
+  },
+  "homepage": "https://github.com/Bruderjulian/PackageStats#readme"
 }
