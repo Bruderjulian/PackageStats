@@ -3,7 +3,7 @@ var cache = {};
 async function displayEntry(name = "", tree) {
   if (cache.hasOwnProperty(name)) return cache[name];
   if (!tree) {
-    tree = await import("fileTree.json", { assert: { type: "json" } });
+    tree = await import("../fileTree.json", { assert: { type: "json" } });
     if (!tree) throw EvalError("Could not find FileTree");
     tree = JSON.parse(JSON.stringify(tree)).default;
   }
@@ -22,7 +22,7 @@ async function displayEntry(name = "", tree) {
     .replaceAll(",", "")
     .replaceAll("    ", " - ");
   str = str.substring(2, str.length - 1);
-  cache[name] = str;
+  cache[entry.fullPath] = str;
   return str;
 }
 
@@ -39,6 +39,12 @@ function findEntry(obj, key, value, loose = false) {
       if (found) return found;
     }
   }
+}
+
+///Code from: stackoverflow.com/a/22129960
+function findEntrybyPath(obj = {}, path) {
+  var properties = Array.isArray(path) ? path : path.split(".");
+  return properties.reduce((prev, curr) => prev?.[curr], obj);
 }
 
 var SizeNames = ["B", "KB", "MB", "GB", "TB"];

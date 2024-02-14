@@ -54,7 +54,7 @@ function isObject(obj) {
 
 const extensions = new Set(require("text-extensions"));
 function isTextFile(path) {
-  if (typeof str !== "string") return;
+  if (typeof path !== "string") return;
   return extensions.has(getFileExtension(path).slice(1).toLowerCase());
 }
 
