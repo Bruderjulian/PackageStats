@@ -8,8 +8,7 @@ var entry_info = document.getElementById("entry_info");
 var doubleClickHandler = doubleClick(
   function (e) {
     let name = e.target.id || e.target.innerText;
-    let path =
-      getPath(document.getElementById(name)) + "." + name.replace(/\.[^/.]+$/, "");
+    let path = getPath(e.target) + "." + name.replace(/\.[^/.]+$/, "");
     displayEntry(path, inputTree).then(function (out) {
       entry_info.innerHTML = out;
     });
@@ -85,12 +84,12 @@ function genFolder(entry) {
 function getPath(node) {
   var path = "";
   while (node) {
-    node = node.parentElement;
-    if (!node) break;
     if (node.id == "file_tree") break;
     if (typeof node.id === "string" && node.id !== "") {
       path += "." + node.id;
     }
+    if (node.className == "folder_name") node = node.parentElement;
+    node = node.parentElement;
   }
   return path;
 }

@@ -9,9 +9,7 @@ async function displayEntry(path = "", tree) {
   }
 
   var entry = findEntrybyPath(tree, path);
-  if (!entry) entry = findEntrybyPath(tree, path, true);
   if (!entry) throw EvalError("Could not find Entry");
-  console.log(entry);
 
   var displayObj = {};
   for (const i of Object.keys(entry)) displayObj[i] = entry[i];
@@ -20,9 +18,9 @@ async function displayEntry(path = "", tree) {
 
   var str = JSON.stringify(displayObj, null, 4)
     .replaceAll('"', "")
-    .replaceAll(",", "")
+    .replaceAll(",", "");
   str = str.substring(2, str.length - 1);
-  cache[path.slice(1)] = str;
+  cache[path] = str;
   return str;
 }
 
