@@ -11,8 +11,7 @@ const {
 const printTree = require("./printTree.js");
 const scanDir = require("./scan.js");
 const terminal = require("./terminal.js");
-const url = require("url");
-const displayEntry = import("../src/displayEntry.mjs");
+
 
 var server;
 var help = `
@@ -74,7 +73,6 @@ var commands = {
         throw Error("Could not scan Folder Tree correctly");
       }
       if (!options.noprint && !options.npr) {
-        //console.log(tree[0]);
         console.log(
           printTree(
             tree[0],
@@ -96,7 +94,12 @@ var commands = {
   },
   inspect: function (options) {
     if (existFile("fileTree.json")) {
-      console.log(displayEntry(options.select || options.sel || ""));
+      import("./displayEntry.mjs").then(function (val) {
+        if (!val || !val.default) throw Error("Could not display Entry");
+        var displayEntry = val.default;
+        var tree = require("../fileTree.json");
+        console.log(displayEntry(options.select || options.sel || "", tree));
+      });
     } else {
       // auto scan
     }
@@ -148,8 +151,6 @@ const mimeTypes = {
   ".js": "text/javascript",
   ".json": "application/json",
   ".css": "text/css",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
   ".svg": "image/svg+xml",
 };
 

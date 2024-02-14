@@ -1,20 +1,12 @@
-var fileTree;
 var cache = {};
-var parsedTree = fileTree
-  ? JSON.parse(JSON.stringify(fileTree)).default
-  : undefined;
+var fileTree;
 
-function displayEntry(name = "", tree) {
+async function displayEntry(name = "", tree) {
   if (cache.hasOwnProperty(name)) return cache[name];
-  if (!fileTree)
-    import("../fileTree.json").then(function (value) {
-      fileTree = value;
-      console.log(value);
-    });
-  if (!fileTree) throw EvalError("Could not find FileTree");
   if (!tree) {
-    tree = parsedTree =
-      parsedTree || JSON.parse(JSON.stringify(fileTree)).default;
+    tree = await import("../fileTree.json", { assert: { type: "json" } });
+    if (!tree) throw EvalError("Could not find FileTree");
+    tree = JSON.parse(JSON.stringify(tree)).default;
   }
 
   var entry = findEntry(tree, "name", name);

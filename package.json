@@ -31,5 +31,8 @@
   "bugs": {
     "url": "https://github.com/Bruderjulian/PackageStats/issues"
   },
-  "homepage": "https://github.com/Bruderjulian/PackageStats#readme"
+  "homepage": "https://github.com/Bruderjulian/PackageStats#readme",
+  "dependencies": {
+    "text-extensions": "^2.4.0"
+  }
 }

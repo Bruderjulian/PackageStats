@@ -1,5 +1,5 @@
 const { readFileSync, lstatSync } = require("fs");
-const { normalize: normalizePath, resolve } = require("path");
+const { normalize: normalizePath, resolve: resolvePath } = require("path");
 
 function normalize(path, name) {
   path = normalizePath(path);
@@ -16,25 +16,28 @@ function countLines(path) {
   return nLines;
 }
 
-function existFile(p) {
+function existFile(path) {
+  if (typeof path !== "string") return false;
   try {
-    return lstatSync(p) ? true : false;
+    return lstatSync(path) ? true : false;
   } catch (e) {
     return false;
   }
 }
 
-function isFile(p) {
+function isFile(path) {
+  if (typeof path !== "string") return false;
   try {
-    return lstatSync(p).isFile();
+    return lstatSync(path).isFile();
   } catch (e) {
     return false;
   }
 }
 
-function isFolder(p) {
+function isFolder(path) {
+  if (typeof path !== "string") return false;
   try {
-    return lstatSync(p).isDirectory();
+    return lstatSync(path).isDirectory();
   } catch (e) {
     return false;
   }
@@ -49,13 +52,14 @@ function isObject(obj) {
   return typeof obj == "object" && !Array.isArray(obj) && obj !== null;
 }
 
-const extensions = new Set(require("./text-extensions.json"));
+const extensions = new Set(require("text-extensions"));
 function isTextFile(path) {
+  if (typeof str !== "string") return;
   return extensions.has(getFileExtension(path).slice(1).toLowerCase());
 }
 
 function getFullPath(path) {
-  return resolve(path);
+  return normalize(resolvePath(path));
 }
 
 function validateIpAndPort(ip, port) {
