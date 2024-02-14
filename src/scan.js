@@ -23,7 +23,7 @@ function scanFile(path, withExtension = true) {
   return {
     lines: isTextFile(path) ? countLines(path) : 0,
     name: withExtension ? name : name.split(".")[0],
-    path: path.substring(0, path.lastIndexOf("/") - 1),
+    path: path.substring(0, path.lastIndexOf("/") + 1),
     fullPath: normalize(getFullPath(path)),
     extension: getFileExtension(path),
     isFile: true,

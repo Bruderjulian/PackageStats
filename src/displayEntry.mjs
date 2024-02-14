@@ -1,5 +1,4 @@
 var cache = {};
-var fileTree;
 
 async function displayEntry(name = "", tree) {
   if (cache.hasOwnProperty(name)) return cache[name];
@@ -18,7 +17,11 @@ async function displayEntry(name = "", tree) {
   if (entry.contents) displayObj.contents = entry.contents.map((a) => a.name);
   displayObj.size = convertSize(entry.size);
 
-  var str = JSON.stringify(displayObj, null, 4).replaceAll('"', "");
+  var str = JSON.stringify(displayObj, null, 4)
+    .replaceAll('"', "")
+    .replaceAll(",", "")
+    .replaceAll("    ", " - ");
+  str = str.substring(2, str.length - 1);
   cache[name] = str;
   return str;
 }

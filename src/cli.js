@@ -97,8 +97,9 @@ var commands = {
       import("./displayEntry.mjs").then(function (val) {
         if (!val || !val.default) throw Error("Could not display Entry");
         var displayEntry = val.default;
-        var tree = require("../fileTree.json");
-        console.log(displayEntry(options.select || options.sel || "", tree));
+        displayEntry(options.select || options.sel || "").then(function (out) {
+          console.log(out);
+        })
       });
     } else {
       // auto scan
