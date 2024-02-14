@@ -7,9 +7,10 @@ var entry_info = document.getElementById("entry_info");
 
 var doubleClickHandler = doubleClick(
   function (e) {
-    displayEntry(e.target.id || e.target.innerText, inputTree).then(function (
-      out
-    ) {
+    let name = e.target.id || e.target.innerText;
+    let path =
+      getPath(document.getElementById(name)) + "." + name.replace(/\.[^/.]+$/, "");
+    displayEntry(path, inputTree).then(function (out) {
       entry_info.innerHTML = out;
     });
   },
@@ -79,4 +80,17 @@ function genFolder(entry) {
   folder.appendChild(nameSpan);
   folder.appendChild(genContents(entry));
   return folder;
+}
+
+function getPath(node) {
+  var path = "";
+  while (node) {
+    node = node.parentElement;
+    if (!node) break;
+    if (node.id == "file_tree") break;
+    if (typeof node.id === "string" && node.id !== "") {
+      path += "." + node.id;
+    }
+  }
+  return path;
 }

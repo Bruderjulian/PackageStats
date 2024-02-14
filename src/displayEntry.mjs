@@ -1,16 +1,17 @@
 var cache = {};
 
-async function displayEntry(name = "", tree) {
-  if (cache.hasOwnProperty(name)) return cache[name];
+async function displayEntry(path = "", tree) {
+  if (cache.hasOwnProperty(path)) return cache[path];
   if (!tree) {
     tree = await import("../fileTree.json", { assert: { type: "json" } });
     if (!tree) throw EvalError("Could not find FileTree");
     tree = JSON.parse(JSON.stringify(tree)).default;
   }
 
-  var entry = findEntry(tree, "name", name);
-  if (!entry) entry = findEntry(tree, "name", name, true);
+  var entry = findEntrybyPath(tree, path);
+  if (!entry) entry = findEntrybyPath(tree, path, true);
   if (!entry) throw EvalError("Could not find Entry");
+  console.log(entry);
 
   var displayObj = {};
   for (const i of Object.keys(entry)) displayObj[i] = entry[i];
@@ -20,31 +21,25 @@ async function displayEntry(name = "", tree) {
   var str = JSON.stringify(displayObj, null, 4)
     .replaceAll('"', "")
     .replaceAll(",", "")
-    .replaceAll("    ", " - ");
   str = str.substring(2, str.length - 1);
-  cache[entry.fullPath] = str;
+  cache[path.slice(1)] = str;
   return str;
 }
 
-//Code from: https://stackoverflow.com/a/69700389
-function findEntry(obj, key, value, loose = false) {
-  if (!loose && obj[key] === value) return obj;
-  if (loose && typeof obj[key] === "string" && obj[key].includes(value))
-    return obj;
-  var keys = Object.keys(obj);
-  for (var i = 0, len = keys.length; i < len; i++) {
-    // add "obj[keys[i]] &&" to ignore null values
-    if (obj[keys[i]] && typeof obj[keys[i]] == "object") {
-      var found = findEntry(obj[keys[i]], key, value, loose);
-      if (found) return found;
+///Code from: stackoverflow.com/a/22129960
+function findEntrybyPath(tree = {}, path) {
+  var properties = Array.isArray(path) ? path : path.split(".").slice(1);
+  var entry = tree;
+  for (let i = 0; i < properties.length; i++) {
+    for (let j = 0; j < entry.contents.length; j++) {
+      if (!entry.contents[j]) continue;
+      if (entry.contents[j].name.replace(/\.[^/.]+$/, "") === properties[i]) {
+        entry = entry.contents[j];
+        break;
+      }
     }
   }
-}
-
-///Code from: stackoverflow.com/a/22129960
-function findEntrybyPath(obj = {}, path) {
-  var properties = Array.isArray(path) ? path : path.split(".");
-  return properties.reduce((prev, curr) => prev?.[curr], obj);
+  return entry;
 }
 
 var SizeNames = ["B", "KB", "MB", "GB", "TB"];
