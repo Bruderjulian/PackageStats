@@ -7,10 +7,11 @@ var entry_info = document.getElementById("entry_info");
 
 var doubleClickHandler = doubleClick(
   function (e) {
-    entry_info.innerHTML = displayEntry(
-      e.target.id || e.target.innerText,
-      inputTree
-    );
+    displayEntry(e.target.id || e.target.innerText, inputTree).then(function (
+      out
+    ) {
+      entry_info.innerHTML = out;
+    });
   },
   function (e) {
     if (e.target.className == "folder_name") {

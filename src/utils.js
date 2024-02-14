@@ -13,7 +13,7 @@ function countLines(path) {
     nLines = 0,
     n = text.length;
   for (; i < n; ++i) if (text[i] === "\n") ++nLines;
-  return nLines;
+  return ++nLines;
 }
 
 function existFile(path) {

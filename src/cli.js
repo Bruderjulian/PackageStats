@@ -12,7 +12,6 @@ const printTree = require("./printTree.js");
 const scanDir = require("./scan.js");
 const terminal = require("./terminal.js");
 
-
 var server;
 var help = `
         ${terminal.link(
@@ -99,7 +98,7 @@ var commands = {
         var displayEntry = val.default;
         displayEntry(options.select || options.sel || "").then(function (out) {
           console.log(out);
-        })
+        });
       });
     } else {
       // auto scan
@@ -150,6 +149,7 @@ const mimeTypes = {
   ".ico": "image/x-icon",
   ".html": "text/html",
   ".js": "text/javascript",
+  ".mjs": "text/javascript",
   ".json": "application/json",
   ".css": "text/css",
   ".svg": "image/svg+xml",
@@ -160,9 +160,10 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
     throw Error("Invalid IP or Port - " + ip + ":" + port);
   }
   server = createServer(function (req, response) {
-    var path = req.url.replace(/[^a-z0-9/.]/gi, "_").toLowerCase();
+    var path = req.url.replace(/[^a-z0-9/.]/gi, "_");
     if (path === "/") path = "./viewer/viewer.html";
-    else if (path === "/filetree.json") path = "./fileTree.json";
+    else if (path === "/fileTree.json") path = "./fileTree.json";
+    else if (path === "/src/displayEntry.mjs") path = "./src/displayEntry.mjs";
     else path = "./viewer" + path;
     path = normalize(path);
     readFile(path, function (error, data) {
