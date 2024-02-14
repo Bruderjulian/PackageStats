@@ -80,6 +80,7 @@ async function scanDir(path, logging = false) {
   if (isFile(path)) {
     files.push(scanFile(path));
   } else if (isFolder(path)) files.push(await scanFolder(path, logging));
+  else throw Error("Could not scan Path");
   if (logging == true) {
     console.log(
       "Scanned",
