@@ -108,7 +108,7 @@ var commands = {
     console.log(help);
   },
   packageInfo: function (options) {
-    let info = packageInfo[options.select] || packageInfo;
+    let info = packageInfo[options.select || options.sel] || packageInfo;
     console.log(JSON.stringify(info, null, 2).replaceAll('"', ""));
   },
   view: function (options) {
