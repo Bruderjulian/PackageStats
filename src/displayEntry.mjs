@@ -3,7 +3,7 @@ var cache = {};
 async function displayEntry(name = "", tree) {
   if (cache.hasOwnProperty(name)) return cache[name];
   if (!tree) {
-    tree = await import("../fileTree.json", { assert: { type: "json" } });
+    tree = await import("fileTree.json", { assert: { type: "json" } });
     if (!tree) throw EvalError("Could not find FileTree");
     tree = JSON.parse(JSON.stringify(tree)).default;
   }
