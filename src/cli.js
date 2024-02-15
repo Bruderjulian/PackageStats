@@ -11,6 +11,7 @@ const {
 const printTree = require("./printTree.js");
 const scanDir = require("./scan.js");
 const terminal = require("./terminal.js");
+const { fileURLToPath } = require("url");
 
 var server;
 var commands = {
@@ -74,25 +75,46 @@ var commands = {
 async function handleScan(options) {
   var tree = await scanDir(options.path, !!options.log);
   if (
-    !Array.isArray(tree) ||
-    !isObject(tree[0]) ||
-    !tree[0].hasOwnProperty("name")
+    !isObject(tree) ||
+    !Array.isArray(tree.contents) ||
+    !isObject(tree.contents[0]) ||
+    !tree.contents[0].hasOwnProperty("name")
   ) {
     throw Error("Could not scan Folder Tree correctly");
   }
-  handlePrint(options, tree[0]);
+  handlePrint(options, tree);
   if (options.save === true) {
-    writeFile("fileTree.json", JSON.stringify(tree[0]), "utf8", function (err) {
-      if (err) throw Error("Could not save File");
-    });
+    writeFile(
+      "fileTree.json",
+      JSON.stringify(tree.contents[0]),
+      "utf8",
+      function (err) {
+        if (err) throw Error("Could not save File");
+      }
+    );
   }
-  return tree[0];
+  return tree;
 }
 
 function handlePrint(options, tree) {
+    if (!!options.log == true) {
+      console.log(
+        "Scanned",
+        tree.folderCount,
+        "Folders with",
+        tree.fileCount,
+        "Files in",
+        tree.time,
+        "ms\nTotal Lines:",
+        tree.contents[0].lines
+      );
+    }
   if (!options.noprint && !options.npr) {
     console.log(
-      printTree(tree, !!+options.outputStyle || !!+options.style || false)
+      printTree(
+        tree.contents[0],
+        !!+options.outputStyle || !!+options.style || false
+      )
     );
   }
 }

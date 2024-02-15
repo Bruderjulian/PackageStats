@@ -13,11 +13,11 @@ const {
 } = require("./utils.js");
 
 var depth = 0;
-var scannedfolders = 0;
-var scannedfiles = 0;
+var folderCount = 0;
+var fileCount = 0;
 
 function scanFile(path, withExtension = true) {
-  scannedfiles++;
+  fileCount++;
   var stats = statSync(path);
   var name = normalize(path).split("/").at(-1);
   return {
@@ -38,7 +38,7 @@ function scanFile(path, withExtension = true) {
 
 async function scanFolder(path, logging) {
   depth++;
-  scannedfolders++;
+  folderCount++;
   if (logging == true) console.log("Scanning Folder:", path);
   var stats = statSync(path);
   var children = await loopFolder(path, logging);
@@ -75,25 +75,14 @@ async function loopFolder(path, logging) {
 
 async function scanDir(path, logging = false) {
   var time = Date.now();
-  var files = [];
+  var contents = [];
   path = normalize(path);
   if (isFile(path)) {
-    files.push(scanFile(path));
-  } else if (isFolder(path)) files.push(await scanFolder(path, logging));
+    contents.push(scanFile(path));
+  } else if (isFolder(path)) contents.push(await scanFolder(path, logging));
   else throw Error("Could not scan Path");
-  if (logging == true) {
-    console.log(
-      "Scanned",
-      scannedfolders,
-      "Folders with",
-      scannedfiles,
-      "Files in",
-      Date.now() - time,
-      "ms"
-    );
-    console.log("Total Lines:", files[0].lines);
-  }
-  return files;
+
+  return { contents, fileCount, folderCount, time: Date.now() - time};
 }
 
 module.exports = scanDir;
