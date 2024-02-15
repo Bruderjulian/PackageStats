@@ -50,4 +50,48 @@ terminal.colors = {
   },
 };
 
+terminal.helpMenu = `
+        ${terminal.link(
+          terminal.color("Usage", terminal.colors.fg.red),
+          "https://github.com/Bruderjulian/PackageStats"
+        )}
+	  node packageStats.js <command> <args>
+          npm run cli <command> <args>
+          npm run version 
+          npm run view <args>
+          npm run help
+
+        ${terminal.link(
+          terminal.color("Commands", terminal.colors.fg.red),
+          "https://github.com/Bruderjulian/PackageStats"
+        )}
+          scan            scans the dictorary
+          inspect         inspect a single entry
+          view            opens the Viewer
+          help            shows the help menu
+          packageInfo     outputs the package.json
+          cleanup         removes saved scannes
+
+	${terminal.link(
+    terminal.color("Options", terminal.colors.fg.red),
+    "https://github.com/Bruderjulian/PackageStats"
+  )}
+	  --path, --p                Path to Package (default is ./)
+          --select, --sel            File or Folder to inspect
+          --port,                    Port to open the File Tree Viewer (default is 8080)
+          --outputStyle, --style     Style to print the Tree (default is 0)
+          -save, -s                  save the ouput to file. (default is false)
+          -log, -l                   log Information about the scan (default is false)
+          -noprint, -npr             disables the printing of the scanned File Tree (default is false)
+
+	${terminal.link(
+    terminal.color("Examples", terminal.colors.fg.red),
+    "https://github.com/Bruderjulian/PackageStats"
+  )}
+          node packageStats.js packageInfo
+	  node packageStats.js scan
+	  node packageStats.js inspect --select=someFile.js
+          node packageStats.js view --port=8080
+`;
+
 module.exports = terminal;
