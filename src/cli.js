@@ -73,7 +73,7 @@ async function handleScan(options) {
   let isExcluded = parseExclude(options.exclude);
   var tree = await scanDir({
     path: options.path,
-    isExclude: isExcluded,
+    isExcluded: isExcluded,
     logging: !!options.log,
     withExtensions: !!options.withExtensions,
   });

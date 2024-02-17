@@ -131,23 +131,22 @@ function parseExclude(str) {
     } catch (error) {
       throw Error("Could not parse Data from File:" + path);
     }
-    console.log(data);
-    return function isExluded(name) {
+    return function isExcluded(name) {
       return data.includes(normalize(name));
     };
   } else if (str.includes("regex:")) {
     str = new RegExp(str.slice(6));
     return function isExluded(name) {
-      return str.test(name);
+      return str.test(normalize(name));
     };
   } else if (str.includes("%")) {
     str = str.replaceAll("%", "");
     return function isExluded(name) {
-      return name.includes(str);
+      return normalize(name).includes(str);
     };
   } else
     return function isExluded(name) {
-      return name === str;
+      return normalize(name) === str;
     };
 }
 

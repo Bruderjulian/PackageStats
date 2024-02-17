@@ -79,7 +79,7 @@ async function loopFolder(options) {
 async function scanDir(options = {}) {
   var time = Date.now();
   var contents = [];
-  if (typeof options == "string") options = {path: options || "./"};
+  if (typeof options == "string") options = { path: options || "./" };
   else if (!isObject(options)) throw SyntaxError("Invalid Options");
   options.path = normalize(options.path || "./");
   options.isExcluded =
@@ -87,13 +87,14 @@ async function scanDir(options = {}) {
     function () {
       return false;
     };
-  options.logging = options.logging || false; 
-  options.withExtensions = options.withExtensions || true; 
-  if (isFile(options.path) && !isExcluded(options.path)) {
-    contents.push(scanFile(options));
-  } else if (isFolder(options.path))
-    contents.push(await scanFolder(options));
-  else throw Error("Could not scan Path");
+  options.logging = options.logging || false;
+  options.withExtensions = options.withExtensions || true;
+  if (!options.isExcluded(options.path)) {
+    if (isFile(options.path)) {
+      contents.push(scanFile(options));
+    } else if (isFolder(options.path)) contents.push(await scanFolder(options));
+    else throw Error("Could not scan Path");
+  }
   return { contents, fileCount, folderCount, time: Date.now() - time };
 }
 
