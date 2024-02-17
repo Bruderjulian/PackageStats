@@ -1,5 +1,5 @@
-const { readFileSync, lstatSync } = require("fs");
-const { normalize: normalizePath, resolve: resolvePath } = require("path");
+const { readFileSync, lstatSync, existsSync } = require("fs");
+const { normalize: normalizePath, resolve: resolvePath, basename, dirname } = require("path");
 const { createServer } = require("http");
 
 function normalize(path, name) {
@@ -20,7 +20,7 @@ function countLines(path) {
 function existFile(path) {
   if (typeof path !== "string") return false;
   try {
-    return lstatSync(path) ? true : false;
+    return existsSync(path) || false;
   } catch (e) {
     return false;
   }
@@ -61,6 +61,15 @@ function isTextFile(path) {
 
 function getFullPath(path) {
   return normalize(resolvePath(path));
+}
+
+function getFileName(path, withExtension) {
+  let name = basename(path);
+  return withExtension ? name : name.replace(getFileExtension(name), "");
+}
+
+function getFolderName(path) {
+  return dirname(resolvePath(path));
 }
 
 function validateIpAndPort(ip, port) {
@@ -107,6 +116,39 @@ function parseArgs() {
     } else throw Error("Invalid Arguments");
   }
   return args;
+}
+
+function parseExclude(str) {
+  if (typeof str !== "string") return;
+  if (str.includes("file:/")) {
+    let path = resolvePath(str.slice(6));
+    if (!existFile(path) || getFileExtension(path) !== ".json") {
+      throw Error("Could not find Exclude File on: " + path);
+    }
+    var data = readFileSync(path, "utf8");
+    try {
+      data = JSON.parse(JSON.stringify(data));
+    } catch (error) {
+      throw Error("Could not parse Data from File:" + path);
+    }
+    console.log(data);
+    return function isExluded(name) {
+      return data.includes(name);
+    };
+  } else if (str.includes("regex:")) {
+    str = new RegExp(str.slice(6));
+    return function isExluded(name) {
+      return str.test(name);
+    };
+  } else if (str.includes("%")) {
+    str = str.replaceAll("%", "");
+    return function isExluded(name) {
+      return name.includes(str);
+    };
+  } else
+    return function isExluded(name) {
+      return name === str;
+    };
 }
 
 const mimeTypes = {
@@ -177,6 +219,9 @@ module.exports = {
   existFile,
   getFileExtension,
   getFullPath,
+  getFileName,
+  getFolderName,
+  parseExclude,
   startViewer,
   parseArgs,
 };

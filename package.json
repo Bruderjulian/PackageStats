@@ -13,8 +13,9 @@
     "packageStats:cleanup": "node index.js cleanup",
     "packageStats:help": "node index.js help",
     "packageStats:packageInfo": "node index.js packageInfo",
+    "precommit": "node index.js cleanup & npm uninstall text-extensions",
     "commit": "git add . && git commit -m",
-    "postcommit": "git push --all"
+    "postcommit": "git push --all && npm install text-extensions"
   },
   "author": "Julian",
   "license": "MIT",
@@ -35,8 +36,5 @@
   "bugs": {
     "url": "https://github.com/Bruderjulian/PackageStats/issues"
   },
-  "homepage": "https://github.com/Bruderjulian/PackageStats#readme",
-  "dependencies": {
-    "text-extensions": "^2.4.0"
-  }
+  "homepage": "https://github.com/Bruderjulian/PackageStats#readme"
 }
