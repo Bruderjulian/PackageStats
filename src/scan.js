@@ -12,18 +12,20 @@ const {
   getFullPath,
   getFileName,
   getFolderName,
+  isObject,
 } = require("./utils.js");
 
 var depth = 0;
 var folderCount = 0;
 var fileCount = 0;
 
-function scanFile(path, withExtension = true) {
+function scanFile(options) {
   fileCount++;
+  var path = options.path;
   var stats = statSync(path);
   return {
     lines: isTextFile(path) ? countLines(path) : 0,
-    name: getFileName(path, withExtension),
+    name: getFileName(path, options.withExtensions),
     path: getFolderName(path),
     fullPath: normalize(getFullPath(path)),
     extension: getFileExtension(path),
@@ -37,12 +39,13 @@ function scanFile(path, withExtension = true) {
   };
 }
 
-async function scanFolder(path, logging, withExtension) {
+async function scanFolder(options) {
   depth++;
   folderCount++;
-  if (logging == true) console.log("Scanning Folder:", path);
+  var path = options.path;
+  if (options.logging == true) console.log("Scanning Folder:", path);
   var stats = statSync(path);
-  var children = await loopFolder(path, logging, withExtension);
+  var children = await loopFolder(options);
   return {
     lines: children.reduce((n, { lines }) => n + lines, 0),
     name: getFolderName(path),
@@ -59,30 +62,38 @@ async function scanFolder(path, logging, withExtension) {
   };
 }
 
-async function loopFolder(path, logging, withExtension) {
-  var dir = await opendir(path);
+async function loopFolder(options) {
+  var dir = await opendir(options.path);
   var files = [];
   for await (const dirent of dir) {
-    var path = normalize(dirent.path, dirent.name);
-    if (path.includes("node_modules") || path.includes(".git")) continue;
-    if (isFile(path)) {
-      files.push(scanFile(path, withExtension));
-    } else files.push(await scanFolder(path, logging, withExtension));
+    options.path = normalize(dirent.path, dirent.name);
+    if (options.isExcluded(options.path)) continue;
+    if (isFile(options.path)) {
+      files.push(scanFile(options));
+    } else files.push(await scanFolder(options));
   }
   depth--;
   return files;
 }
 
-async function scanDir(path, isExclude, logging = false, withExtension) {
+async function scanDir(options = {}) {
   var time = Date.now();
   var contents = [];
-  path = normalize(path);
-  if (isFile(path) && !isExclude(path)) {
-    contents.push(scanFile(path, withExtension));
-  } else if (isFolder(path))
-    contents.push(await scanFolder(path, logging, withExtension));
+  if (typeof options == "string") options = {path: options || "./"};
+  else if (!isObject(options)) throw SyntaxError("Invalid Options");
+  options.path = normalize(options.path || "./");
+  options.isExcluded =
+    options.isExcluded ||
+    function () {
+      return false;
+    };
+  options.logging = options.logging || false; 
+  options.withExtensions = options.withExtensions || true; 
+  if (isFile(options.path) && !isExcluded(options.path)) {
+    contents.push(scanFile(options));
+  } else if (isFolder(options.path))
+    contents.push(await scanFolder(options));
   else throw Error("Could not scan Path");
-
   return { contents, fileCount, folderCount, time: Date.now() - time };
 }
 

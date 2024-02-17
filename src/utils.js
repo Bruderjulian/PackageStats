@@ -63,7 +63,7 @@ function getFullPath(path) {
   return normalize(resolvePath(path));
 }
 
-function getFileName(path, withExtension) {
+function getFileName(path, withExtension = true) {
   let name = basename(path);
   return withExtension ? name : name.replace(getFileExtension(name), "");
 }
@@ -133,7 +133,7 @@ function parseExclude(str) {
     }
     console.log(data);
     return function isExluded(name) {
-      return data.includes(name);
+      return data.includes(normalize(name));
     };
   } else if (str.includes("regex:")) {
     str = new RegExp(str.slice(6));

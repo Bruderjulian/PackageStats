@@ -1,6 +1,11 @@
 const packageInfo = require("../package.json");
 const { writeFile, unlinkSync } = require("fs");
-const { isObject, existFile, startViewer, parseExclude } = require("./utils.js");
+const {
+  isObject,
+  existFile,
+  startViewer,
+  parseExclude,
+} = require("./utils.js");
 const printTree = require("./printTree.js");
 const scanDir = require("./scan.js");
 const terminal = require("./terminal.js");
@@ -66,7 +71,12 @@ var commands = {
 
 async function handleScan(options) {
   let isExcluded = parseExclude(options.exclude);
-  var tree = await scanDir(options.path, isExcluded, !!options.log);
+  var tree = await scanDir({
+    path: options.path,
+    isExclude: isExcluded,
+    logging: !!options.log,
+    withExtensions: !!options.withExtensions,
+  });
   if (
     !isObject(tree) ||
     !Array.isArray(tree.contents) ||
