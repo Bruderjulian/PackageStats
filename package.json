@@ -13,7 +13,7 @@
     "packageStats:cleanup": "node index.js cleanup",
     "packageStats:help": "node index.js help",
     "packageStats:packageInfo": "node index.js packageInfo",
-    "precommit": "node index.js cleanup & npm uninstall text-extensions",
+    "precommit": "npm uninstall text-extensions",
     "commit": "git add . && git commit -m",
     "postcommit": "git push --all && npm install text-extensions"
   },
