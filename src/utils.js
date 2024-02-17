@@ -1,5 +1,6 @@
 const { readFileSync, lstatSync } = require("fs");
 const { normalize: normalizePath, resolve: resolvePath } = require("path");
+const { createServer } = require("http");
 
 function normalize(path, name) {
   path = normalizePath(path);
@@ -77,15 +78,105 @@ function validateNum(num, min, max) {
   return typeof num === "number" && !isNaN(num) && num >= min && num <= max;
 }
 
+// based from https://stackoverflow.com/a/54098693
+var cmds = [
+  "scan",
+  "print",
+  "inspect",
+  "view",
+  "closeView",
+  "help",
+  "packageInfo",
+  "cleanup",
+];
+function parseArgs() {
+  var args = {},
+    argv = process.argv.slice(2);
+  for (var i = 0; i < argv.length; i++) {
+    let cmd = argv[i].replaceAll("-", "");
+    if (cmds.includes(cmd) && !args["command"]) {
+      //command
+      args["command"] = cmd;
+    } else if (argv[i].slice(0, 2) === "--") {
+      // long arg
+      let longArg = argv[i].split("=");
+      args[longArg[0].slice(2)] = longArg.length > 1 ? longArg[1] : true;
+    } else if (argv[i][0] === "-") {
+      // flags
+      args[argv[i].slice(1).replace("!", "")] = argv[i].indexOf("!") == -1;
+    } else throw Error("Invalid Arguments");
+  }
+  return args;
+}
+
+const mimeTypes = {
+  ".ico": "image/x-icon",
+  ".html": "text/html",
+  ".js": "text/javascript",
+  ".mjs": "text/javascript",
+  ".json": "application/json",
+  ".css": "text/css",
+  ".svg": "image/svg+xml",
+};
+
+function startViewer(port = 8080, ip = "127.0.0.1") {
+  if (!validateIpAndPort(ip, (port = parseInt(port)))) {
+    throw Error("Invalid IP or Port - " + ip + ":" + port);
+  }
+  server = createServer(function (req, response) {
+    var path = req.url.replace(/[^a-z0-9/.]/gi, "_");
+    if (path === "/") path = "./viewer/viewer.html";
+    else if (path === "/fileTree.json") path = "./fileTree.json";
+    else if (path === "/src/displayEntry.mjs") path = "./src/displayEntry.mjs";
+    else path = "./viewer" + path;
+    path = normalize(path);
+    readFile(path, function (error, data) {
+      if (error) {
+        response.writeHead(404, { "Content-Type": "text/plain" });
+        response.write("404 Could not find File\n");
+        response.end();
+      } else {
+        var mimetype = mimeTypes[getFileExtension(path)] || mimeTypes[".html"];
+        response.writeHead(200, {
+          "Content-Type": mimetype,
+        });
+        response.write(data);
+        response.end();
+      }
+    });
+  }).listen(port, ip);
+  console.log("Starting Viewer on", ip + ":" + port);
+  console.log(
+    terminal.link(
+      terminal.color("View", terminal.colors.fg.red),
+      "http://localhost:8080/"
+    ),
+    "from Server"
+  );
+  console.log("To Stop Viewer press STRG+C");
+  let onDataCallBack = (data) => {
+    const byteArray = [...data];
+    if (byteArray.length <= 0 || byteArray[0] !== 3) return;
+    console.log("Stopping Viewer...");
+    server.close();
+    process.stdin.removeListener("data", onDataCallBack);
+    process.stdin.setRawMode(false);
+    process.exit(1);
+  };
+  process.stdin.setRawMode(true);
+  process.stdin.on("data", onDataCallBack);
+}
+
 module.exports = {
   isObject,
   normalize,
   countLines,
   isFile,
   isFolder,
+  isTextFile,
   existFile,
   getFileExtension,
-  isTextFile,
   getFullPath,
-  validateIpAndPort,
+  startViewer,
+  parseArgs,
 };

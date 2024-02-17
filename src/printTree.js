@@ -16,7 +16,6 @@ function prefixChild(strs, last) {
 }
 
 function stringifyTree(tn) {
-  if (!isObject(tn)) return;
   var contents = (tn.contents || []).slice();
   if (contents.length === 0) return ["─ " + tn.name];
   return ["┬ " + tn.name].concat(
@@ -52,6 +51,9 @@ function generate(tree, end, depths = []) {
 }
 
 module.exports = function printTree(tree, connect = false) {
-  if (!connect) return generate(tree);
-  else return stringifyTree(tree).join("\n");
+  if (!isObject(tree)) throw Error("Invalid FileTree");
+  if (!connect) var out = generate(tree);
+  else var out = stringifyTree(tree).join("\n");
+  if (typeof out !== "string") throw Error("Could not print FileTree");
+  return out;
 };

@@ -1,5 +1,6 @@
 #! /usr/bin/env node
-const { commands, parseArgs } = require("./src/cli.js");
+const commands = require("./src/cli.js");
+const { parseArgs } = require("./src/utils.js");
 
 // Uses the argv Object to detect
 // if file gets called from cli or gets required from somewhere
