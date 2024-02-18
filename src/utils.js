@@ -1,5 +1,10 @@
-const { readFileSync, lstatSync, existsSync } = require("fs");
-const { normalize: normalizePath, resolve: resolvePath, basename, dirname } = require("path");
+const { readFileSync, lstatSync, existsSync, futimes } = require("fs");
+const {
+  normalize: normalizePath,
+  resolve: resolvePath,
+  basename,
+  dirname,
+} = require("path");
 const { createServer } = require("http");
 
 function normalize(path, name) {
@@ -118,36 +123,66 @@ function parseArgs() {
   return args;
 }
 
+function processExcludeString(string) {
+  let strict = string[0] !== "%" && string[1] !== "%";
+  let noDefaults = string[0] !== "!" && string[1] !== "!";
+  let str =
+    strict && noDefaults
+      ? string.slice(2)
+      : strict || noDefaults
+      ? string.slice(1)
+      : string;
+  return { str, strict, noDefaults };
+}
+
 function parseExclude(str) {
+  return undefined;
+  // Temporary!!
   if (typeof str !== "string") return;
-  if (str.includes("file:/")) {
-    let path = resolvePath(str.slice(6));
+  console.log(str);
+  var data = [];
+  var ignoreDefault = JSON.parse(JSON.stringify(require("../ignore.json")));
+  var opts = processExcludeString(str);
+  if (str.includes("regex:")) {
+    str = new RegExp(str.substring(str.indexOf("regex:") + 6));
+    return function (name) {
+      return str.test(normalize(name));
+    };
+  } else if (str.includes("file:/")) {
+    let path = resolvePath(str.substring(str.indexOf("file:/") + 6));
     if (!existFile(path) || getFileExtension(path) !== ".json") {
       throw Error("Could not find Exclude File on: " + path);
     }
-    var data = readFileSync(path, "utf8");
     try {
-      data = JSON.parse(JSON.stringify(data));
+      data = JSON.parse(JSON.stringify(readFileSync(path, "utf8")));
     } catch (error) {
-      throw Error("Could not parse Data from File:" + path);
+      throw Error("Could not read Data from File:" + path);
     }
-    return function isExcluded(name) {
+  } else {
+    if (opts.strict) {
+      return function (name) {
+        return str == normalize(name);
+      };
+    }
+    data.push(str);
+  }
+  if (opts.noDefaults) {
+    data = data.concat(
+      ignoreDefault.filter(function (i) {
+        return data.indexOf(i) == -1;
+      })
+    );
+  }
+  console.log(data);
+  if (opts.strict) {
+    return function (name) {
       return data.includes(normalize(name));
     };
-  } else if (str.includes("regex:")) {
-    str = new RegExp(str.slice(6));
-    return function isExluded(name) {
-      return str.test(normalize(name));
-    };
-  } else if (str.includes("%")) {
-    str = str.replaceAll("%", "");
-    return function isExluded(name) {
-      return normalize(name).includes(str);
-    };
-  } else
-    return function isExluded(name) {
-      return normalize(name) === str;
-    };
+  }
+  return function (name) {
+    name = normalize(name);
+    data.every((val) => name.includes(val));
+  };
 }
 
 const mimeTypes = {

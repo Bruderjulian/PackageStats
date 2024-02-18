@@ -70,7 +70,7 @@ var commands = {
 };
 
 async function handleScan(options) {
-  let isExcluded = parseExclude(options.exclude);
+  let isExcluded = parseExclude(options.exclude || "file:/../ignore.json");
   var tree = await scanDir({
     path: options.path,
     isExcluded: isExcluded,
