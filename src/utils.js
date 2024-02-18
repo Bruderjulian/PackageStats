@@ -82,7 +82,7 @@ function getFileName(path, withExtension = true) {
 }
 
 function getFolderName(path) {
-  return dirname(resolvePath(path));
+  return normalize(path.match(/([^\/]*)\/*$/)[1]);
 }
 
 function validateIpAndPort(ip, port) {
@@ -197,7 +197,7 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
   if (!validateIpAndPort(ip, (port = parseInt(port)))) {
     throw Error("Invalid IP or Port - " + ip + ":" + port);
   }
-  if (!existFile("../fileTree.json")) throw Error("Nothing scanned yet");
+  if (!existFile("./fileTree.json")) throw Error("Nothing scanned yet");
   server = createServer(function (req, response) {
     var path = req.url.replace(/[^a-z0-9/.]/gi, "_");
     if (path === "/") path = "./viewer/viewer.html";
@@ -228,6 +228,8 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
         response.writeHead(200, {
           "Content-Type": mimetype,
           "Content-Encoding": encoding,
+          "Cache-Control": "max-age=150"
+
         });
         //response.write(data);
         //response.end();
