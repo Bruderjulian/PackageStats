@@ -1,4 +1,10 @@
-const { readFileSync, lstatSync, existsSync, futimes } = require("fs");
+const {
+  readFileSync,
+  lstatSync,
+  existsSync,
+  readFile,
+  createReadStream,
+} = require("fs");
 const {
   normalize: normalizePath,
   resolve: resolvePath,
@@ -6,6 +12,8 @@ const {
   dirname,
 } = require("path");
 const { createServer } = require("http");
+const terminal = require("./terminal.js");
+const zlib = require("zlib");
 
 function normalize(path, name) {
   path = normalizePath(path);
@@ -189,6 +197,7 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
   if (!validateIpAndPort(ip, (port = parseInt(port)))) {
     throw Error("Invalid IP or Port - " + ip + ":" + port);
   }
+  if (!existFile("../fileTree.json")) throw Error("Nothing scanned yet");
   server = createServer(function (req, response) {
     var path = req.url.replace(/[^a-z0-9/.]/gi, "_");
     if (path === "/") path = "./viewer/viewer.html";
@@ -202,19 +211,33 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
         response.write("404 Could not find File\n");
         response.end();
       } else {
-        var mimetype = mimeTypes[getFileExtension(path)] || mimeTypes[".html"];
+        let mimetype = mimeTypes[getFileExtension(path)] || mimeTypes[".html"];
+        let raw = createReadStream(path);
+        let encoding = req.headers["accept-encoding"];
+        if (!encoding) encoding = "";
+        if (encoding.match(/\bgzip\b/)) {
+          encoding = "gzip";
+          raw.pipe(zlib.createGzip()).pipe(response);
+        } else if (encoding.match(/\bdeflate\b/)) {
+          encoding = "deflate";
+          raw.pipe(zlib.createDeflate()).pipe(response);
+        } else {
+          encoding = "";
+          raw.pipe(response);
+        }
         response.writeHead(200, {
           "Content-Type": mimetype,
+          "Content-Encoding": encoding,
         });
-        response.write(data);
-        response.end();
+        //response.write(data);
+        //response.end();
       }
     });
   }).listen(port, ip);
   console.log("Starting Viewer on", ip + ":" + port);
   console.log(
     terminal.link(
-      terminal.color("View", terminal.colors.fg.red),
+      terminal.color("View", terminal.colors.fg.green),
       "http://localhost:8080/"
     ),
     "from Server"
