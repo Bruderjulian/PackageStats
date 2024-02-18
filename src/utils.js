@@ -124,8 +124,8 @@ function parseArgs() {
 }
 
 function processExcludeString(string) {
-  let strict = string[0] !== "%" && string[1] !== "%";
-  let noDefaults = string[0] !== "!" && string[1] !== "!";
+  let strict = string[0] === "%" || string[1] === "%";
+  let noDefaults = string[0] === "!" || string[1] === "!";
   let str =
     strict && noDefaults
       ? string.slice(2)
@@ -136,13 +136,8 @@ function processExcludeString(string) {
 }
 
 function parseExclude(str) {
-  return undefined;
-  // Temporary!!
   if (typeof str !== "string") return;
-  console.log(str);
   var data = [];
-  var ignoreDefault = JSON.parse(JSON.stringify(require("../ignore.json")));
-  var opts = processExcludeString(str);
   if (str.includes("regex:")) {
     str = new RegExp(str.substring(str.indexOf("regex:") + 6));
     return function (name) {
@@ -158,22 +153,17 @@ function parseExclude(str) {
     } catch (error) {
       throw Error("Could not read Data from File:" + path);
     }
-  } else {
-    if (opts.strict) {
-      return function (name) {
-        return str == normalize(name);
-      };
-    }
-    data.push(str);
   }
-  if (opts.noDefaults) {
+  var opts = processExcludeString(str);
+  data.push(opts.str);
+  if (!opts.noDefaults) {
+    let ignoreDefault = JSON.parse(JSON.stringify(require("../ignore.json")));
     data = data.concat(
       ignoreDefault.filter(function (i) {
         return data.indexOf(i) == -1;
       })
     );
   }
-  console.log(data);
   if (opts.strict) {
     return function (name) {
       return data.includes(normalize(name));
