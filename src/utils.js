@@ -155,7 +155,7 @@ function parseExclude(str) {
     }
   }
   var opts = processExcludeString(str);
-  data.push(opts.str);
+  if (opts.str.replaceAll(" ", "") != "") data.push(opts.str);
   if (!opts.noDefaults) {
     let ignoreDefault = JSON.parse(JSON.stringify(require("../ignore.json")));
     data = data.concat(
@@ -171,7 +171,7 @@ function parseExclude(str) {
   }
   return function (name) {
     name = normalize(name);
-    data.every((val) => name.includes(val));
+    return data.some((val) => name.includes(val));
   };
 }
 

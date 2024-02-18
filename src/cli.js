@@ -19,7 +19,7 @@ var commands = {
     }
     return new Promise(function (resolve, reject) {
       try {
-        resolve(handleScan(options));
+        resolve(handleScan(options).catch(reject));
       } catch (err) {
         reject(err);
       }
@@ -70,7 +70,7 @@ var commands = {
 };
 
 async function handleScan(options) {
-  let isExcluded = parseExclude(options.exclude || "file:/../ignore.json");
+  let isExcluded = parseExclude(options.exclude || "");
   var tree = await scanDir({
     path: options.path,
     isExcluded: isExcluded,
