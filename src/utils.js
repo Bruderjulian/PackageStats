@@ -2,18 +2,16 @@ const {
   readFileSync,
   lstatSync,
   existsSync,
-  readFile,
   createReadStream,
 } = require("fs");
 const {
   normalize: normalizePath,
   resolve: resolvePath,
   basename,
-  dirname,
 } = require("path");
 const { createServer } = require("http");
 const terminal = require("./terminal.js");
-const zlib = require("zlib");
+const {createDeflate, createGzip} = require("zlib");
 
 function normalize(path, name) {
   path = normalizePath(path);
@@ -191,6 +189,7 @@ const mimeTypes = {
   ".json": "application/json",
   ".css": "text/css",
   ".svg": "image/svg+xml",
+  ".woff2": "font/woff2",
 };
 
 function startViewer(port = 8080, ip = "127.0.0.1") {
@@ -203,37 +202,23 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
     if (path === "/") path = "./viewer/viewer.html";
     else if (path === "/fileTree.json") path = "./fileTree.json";
     else if (path === "/src/displayEntry.mjs") path = "./src/displayEntry.mjs";
+    else if (path == "/favicon.ico") path = "viewer/assets/favicon.ico";
     else path = "./viewer" + path;
     path = normalize(path);
-    readFile(path, function (error, data) {
-      if (error) {
-        response.writeHead(404, { "Content-Type": "text/plain" });
-        response.write("404 Could not find File\n");
-        response.end();
-      } else {
-        let mimetype = mimeTypes[getFileExtension(path)] || mimeTypes[".html"];
-        let raw = createReadStream(path);
-        let encoding = req.headers["accept-encoding"];
-        if (!encoding) encoding = "";
-        if (encoding.match(/\bgzip\b/)) {
-          encoding = "gzip";
-          raw.pipe(zlib.createGzip()).pipe(response);
-        } else if (encoding.match(/\bdeflate\b/)) {
-          encoding = "deflate";
-          raw.pipe(zlib.createDeflate()).pipe(response);
-        } else {
-          encoding = "";
-          raw.pipe(response);
-        }
-        response.writeHead(200, {
-          "Content-Type": mimetype,
-          "Content-Encoding": encoding,
-          "Cache-Control": "max-age=150"
-
-        });
-        //response.write(data);
-        //response.end();
-      }
+    let mimetype = mimeTypes[getFileExtension(path)] || mimeTypes[".html"];
+    let stream = createReadStream(path);
+    let encoding = req.headers["accept-encoding"] || "";
+    if (encoding.match(/\bgzip\b/)) {
+      encoding = "gzip";
+      stream.pipe(createGzip()).pipe(response);
+    } else if (encoding.match(/\bdeflate\b/)) {
+      encoding = "deflate";
+      stream.pipe(createDeflate()).pipe(response);
+    } else encoding = "";
+    response.writeHead(200, {
+      "Content-Type": mimetype,
+      "Content-Encoding": encoding,
+      "Cache-Control": "max-age=150",
     });
   }).listen(port, ip);
   console.log("Starting Viewer on", ip + ":" + port);

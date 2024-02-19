@@ -45,7 +45,7 @@ var commands = {
     import("./displayEntry.mjs").then(function (val) {
       if (!val || !val.default) throw Error("Could not display Entry");
       var displayEntry = val.default;
-      displayEntry(options.select || options.sel || "").then(function (out) {
+      displayEntry(options.select || options.sel || "", tree).then(function (out) {
         console.log(out);
       });
     });
