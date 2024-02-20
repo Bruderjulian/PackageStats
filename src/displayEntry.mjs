@@ -47,15 +47,14 @@ function roundTo(num, percision = 3) {
 }
 
 
-function findEntry(tree = {}, path) {
-  var properties = Array.isArray(path) ? path : path.split(".").slice(1);
-  if (properties.length > 1) {
-    let splitted = [properties[properties.length - 2], properties.pop()];
-    properties[properties.length - 1] = splitted.join(".");
+function findEntry(tree = {}, path = "") {
+  var properties = path.split(".").slice(1);
+  if (properties.at(-1).includes("?")) {
+    properties[properties.length - 1] = properties[properties.length - 1].replaceAll("?", ".");
   }
   if (!tree || !tree.contents || !properties || properties.length == 0) return;
   if (properties[0].replaceAll(" ", "") == "") return tree.contents;
-  if (!Object.keys(tree.contents).includes(properties[0])) return filterTree(tree, properties[0]);
+  if (!tree.contents.map(a => a.name).includes(properties[0])) return filterTree(tree, properties[0]);
   return findEntryByPath(tree, properties);
 }
 

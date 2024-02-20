@@ -9,6 +9,7 @@ const terminal = require("./terminal.js");
 const zlib = require("zlib");
 
 function normalize(path, name) {
+  if (typeof path !== "string" || path.replace(" ", "") == "") return "";
   path = normalizePath(path);
   if (name) path += "/" + name;
   return path.replaceAll("\\", "/").replaceAll("//", "/");
@@ -93,6 +94,16 @@ function validateNum(num, min, max) {
   return typeof num === "number" && !isNaN(num) && num >= min && num <= max;
 }
 
+function convertFilePath(path = "", start) {
+  if (typeof path !== "string") return;
+  path = normalize(path);
+  var name = getFileName(path)
+  var objPath = path.substring(path.indexOf("/"), path.lastIndexOf("/")).split("/");
+  if (typeof start === "string") objPath = objPath.slice(objPath.indexOf(start));
+  var ext = getFileExtension(name);
+  return objPath.join(".") + "." + name.replace(ext, ext.replace(".", "?"))
+}
+console.log(convertFilePath("src/cli.js"));
 // based from https://stackoverflow.com/a/54098693
 var cmds = [
   "scan",
@@ -131,8 +142,8 @@ function processExcludeString(string) {
     strict && noDefaults
       ? string.slice(2)
       : strict || noDefaults
-      ? string.slice(1)
-      : string;
+        ? string.slice(1)
+        : string;
   return { str, strict, noDefaults };
 }
 
@@ -187,7 +198,8 @@ const mimeTypes = {
   ".woff2": "font/woff2",
 };
 
-function startViewer(port = 8080, ip = "127.0.0.1") {
+var server;
+function startViewer(port = 8080, ip = "127.0.0.1", args) {
   if (!validateIpAndPort(ip, (port = parseInt(port)))) {
     throw Error("Invalid IP or Port - " + ip + ":" + port);
   }
@@ -198,6 +210,14 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
     else if (path === "/fileTree.json") path = "./fileTree.json";
     else if (path === "/src/displayEntry.mjs") path = "./src/displayEntry.mjs";
     else if (path == "/favicon.ico") path = "viewer/assets/favicon.ico";
+    else if (path == "/args.data") {
+      response.writeHead(200, {
+        "Content-Type": "application/json",
+      });
+      response.write(JSON.stringify(args));
+      response.end();
+      return;
+    }
     else path = "./viewer" + path;
 
     let encoding = req.headers["accept-encoding"] || "";
@@ -211,8 +231,8 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
     response.writeHead(200, {
       "Content-Type": mimeTypes[getFileExtension(path)] || mimeTypes[".html"],
       "Content-Encoding": encoding.toLowerCase(),
-      //"Cache-Control": "no-cache",
-      "cache-control: max-age=150"
+      "Cache-Control": "no-cache",
+      //"Cache-Control": "max-age=150",
     });
   }).listen(port, ip);
   console.log("Starting Viewer on", ip + ":" + port);
@@ -227,14 +247,20 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
   let onDataCallBack = (data) => {
     const byteArray = [...data];
     if (byteArray.length <= 0 || byteArray[0] !== 3) return;
-    console.log("Stopping Viewer...");
-    server.close();
+    closeViewer();
     process.stdin.removeListener("data", onDataCallBack);
     process.stdin.setRawMode(false);
     process.exit(1);
   };
   process.stdin.setRawMode(true);
   process.stdin.on("data", onDataCallBack);
+}
+
+function closeViewer() {
+  if (!server) return;
+  console.log("Stopping Viewer...");
+  server.close();
+  setImmediate(function () { server.emit('close') });
 }
 
 module.exports = {
@@ -249,7 +275,9 @@ module.exports = {
   getFullPath,
   getFileName,
   getFolderName,
+  convertFilePath,
   parseExclude,
   startViewer,
+  closeViewer,
   parseArgs,
 };

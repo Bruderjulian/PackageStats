@@ -4,10 +4,13 @@ import { displayEntry } from "../src/displayEntry.mjs";
 
 var inputTree = JSON.parse(JSON.stringify(fileTree)).default;
 var entry_info = document.getElementById("entry_info");
+var args = {};
+setTimeout(fetchArgs, 200);
 
 var doubleClickHandler = doubleClick(
   function (e) {
-    var path = getPath(e.target);
+    if (!args.loose) var path = getPath(e.target);
+    else var path = "." + e.target.id || e.target.innerHTML;
     if (typeof path !== "string") throw Error("Could generate Object Path");
     displayEntry(inputTree, path).then(function (out) {
       entry_info.innerHTML = out;
@@ -83,14 +86,23 @@ function genFolder(entry) {
 
 function getPath(node) {
   var path = "";
+  var id = "";
   while (node) {
     if (node.id == "file_tree") break;
     if (typeof node.id === "string" && node.id !== "") {
-      path = path == "" ? node.id : node.id + "." + path;
+      id = node.id.replaceAll(".", "?");
+      path = path == "" ? id : id + "." + path;
     }
-    //.replace(/\.[^/.]+$/, "\.")
-    //if (node.className == "folder_name") node = node.parentElement;
     node = node.parentElement;
   }
   return "." + path;
+}
+
+async function fetchArgs() {
+  var url = window.location.href + "/args.data"
+  var res = await (await fetch(url)).json();
+  if (!res) console.warn("Could not fetch args! Will use defaults");
+  for (const i of Object.keys(res)) {
+    args[i] = res[i];
+  }
 }

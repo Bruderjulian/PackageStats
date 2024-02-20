@@ -3,14 +3,15 @@ const { writeFile, unlinkSync, readFile } = require("fs");
 const {
   isObject,
   existFile,
+  convertFilePath,
   startViewer,
   parseExclude,
+  closeViewer,
 } = require("./utils.js");
 const printTree = require("./printTree.js");
 const scanDir = require("./scan.js");
 const terminal = require("./terminal.js");
 
-var server;
 var commands = {
   scan: function (options = {}) {
     options.path ||= options.p ||= "./";
@@ -52,11 +53,11 @@ var commands = {
     console.log(JSON.stringify(info, null, 2).replaceAll('"', ""));
   },
   view: function (options) {
-    startViewer(options.port);
+    let args = { loose: options.loose };
+    startViewer(options.port, undefined, args);
   },
   closeView: function () {
-    console.log("Stopping Viewer...");
-    server.close();
+    closeViewer();
   },
   cleanup: function () {
     if (existFile("fileTree.json")) unlinkSync("fileTree.json");
@@ -125,7 +126,8 @@ function handleInspect(options) {
     if (!val || !val.displayEntry) throw Error("Could not display Entry");
     var displayEntry = val.displayEntry;
     Promise.resolve(tree).then(function (data) {
-      displayEntry(data.contents[0], "." + (options.select || options.sel || "")).then(function (out) {
+      let path = convertFilePath("." + (options.select || options.sel || ""), "packageStats");
+      displayEntry(data.contents[0], path).then(function (out) {
         console.log(out);
       });
     }).catch(Error);
