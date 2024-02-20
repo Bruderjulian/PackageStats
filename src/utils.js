@@ -211,7 +211,8 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
     response.writeHead(200, {
       "Content-Type": mimeTypes[getFileExtension(path)] || mimeTypes[".html"],
       "Content-Encoding": encoding.toLowerCase(),
-      "Cache-Control": "no-cache",
+      //"Cache-Control": "no-cache",
+      "cache-control: max-age=150"
     });
   }).listen(port, ip);
   console.log("Starting Viewer on", ip + ":" + port);
