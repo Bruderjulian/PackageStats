@@ -1,15 +1,15 @@
 import { doubleClick } from "./doubleClick.js";
 import * as fileTree from "../fileTree.json" assert { type: "json" };
-import displayEntry from "../src/displayEntry.mjs";
+import { displayEntry } from "../src/displayEntry.mjs";
 
 var inputTree = JSON.parse(JSON.stringify(fileTree)).default;
 var entry_info = document.getElementById("entry_info");
 
 var doubleClickHandler = doubleClick(
   function (e) {
-    let name = e.target.id || e.target.innerText;
-    let path = getPath(e.target) + "." + name.replace(/\.[^/.]+$/, "");
-    displayEntry(path, inputTree).then(function (out) {
+    var path = getPath(e.target);
+    if (typeof path !== "string") throw Error("Could generate Object Path");
+    displayEntry(inputTree, path).then(function (out) {
       entry_info.innerHTML = out;
     });
   },
@@ -86,10 +86,11 @@ function getPath(node) {
   while (node) {
     if (node.id == "file_tree") break;
     if (typeof node.id === "string" && node.id !== "") {
-      path += "." + node.id;
+      path = path == "" ? node.id : node.id + "." + path;
     }
-    if (node.className == "folder_name") node = node.parentElement;
+    //.replace(/\.[^/.]+$/, "\.")
+    //if (node.className == "folder_name") node = node.parentElement;
     node = node.parentElement;
   }
-  return path;
+  return "." + path;
 }

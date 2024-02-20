@@ -1,9 +1,4 @@
-const {
-  readFileSync,
-  lstatSync,
-  existsSync,
-  createReadStream,
-} = require("fs");
+const { readFileSync, lstatSync, existsSync, createReadStream } = require("fs");
 const {
   normalize: normalizePath,
   resolve: resolvePath,
@@ -11,7 +6,7 @@ const {
 } = require("path");
 const { createServer } = require("http");
 const terminal = require("./terminal.js");
-const {createDeflate, createGzip} = require("zlib");
+const zlib = require("zlib");
 
 function normalize(path, name) {
   path = normalizePath(path);
@@ -198,27 +193,25 @@ function startViewer(port = 8080, ip = "127.0.0.1") {
   }
   if (!existFile("./fileTree.json")) throw Error("Nothing scanned yet");
   server = createServer(function (req, response) {
-    var path = req.url.replace(/[^a-z0-9/.]/gi, "_");
+    var path = normalize(req.url.replace(/[^a-z0-9/.]/gi, "_"));
     if (path === "/") path = "./viewer/viewer.html";
     else if (path === "/fileTree.json") path = "./fileTree.json";
     else if (path === "/src/displayEntry.mjs") path = "./src/displayEntry.mjs";
     else if (path == "/favicon.ico") path = "viewer/assets/favicon.ico";
     else path = "./viewer" + path;
-    path = normalize(path);
-    let mimetype = mimeTypes[getFileExtension(path)] || mimeTypes[".html"];
-    let stream = createReadStream(path);
+
     let encoding = req.headers["accept-encoding"] || "";
-    if (encoding.match(/\bgzip\b/)) {
-      encoding = "gzip";
-      stream.pipe(createGzip()).pipe(response);
-    } else if (encoding.match(/\bdeflate\b/)) {
-      encoding = "deflate";
-      stream.pipe(createDeflate()).pipe(response);
-    } else encoding = "";
+    if (encoding.match(/\bgzip\b/)) encoding = "Gzip";
+    else if (encoding.match(/\bdeflate\b/)) encoding = "Deflate";
+    else encoding = "";
+    createReadStream(path)
+      .pipe(zlib["create" + encoding]())
+      .pipe(response);
+
     response.writeHead(200, {
-      "Content-Type": mimetype,
-      "Content-Encoding": encoding,
-      "Cache-Control": "max-age=150",
+      "Content-Type": mimeTypes[getFileExtension(path)] || mimeTypes[".html"],
+      "Content-Encoding": encoding.toLowerCase(),
+      "Cache-Control": "no-cache",
     });
   }).listen(port, ip);
   console.log("Starting Viewer on", ip + ":" + port);

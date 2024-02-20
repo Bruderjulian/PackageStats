@@ -1,5 +1,5 @@
 const packageInfo = require("../package.json");
-const { writeFile, unlinkSync } = require("fs");
+const { writeFile, unlinkSync, readFile } = require("fs");
 const {
   isObject,
   existFile,
@@ -41,14 +41,8 @@ var commands = {
       });
   },
   inspect: function (options) {
-    if (!existFile("./fileTree.json")) var tree = commands.scan(options);
-    import("./displayEntry.mjs").then(function (val) {
-      if (!val || !val.default) throw Error("Could not display Entry");
-      var displayEntry = val.default;
-      displayEntry(options.select || options.sel || "", tree).then(function (out) {
-        console.log(out);
-      });
-    });
+    options.noprint = options.noprint || true;
+    handleInspect(options);
   },
   help: function () {
     console.log(terminal.helpMenu);
@@ -119,6 +113,23 @@ function handlePrint(options, tree) {
       !!+options.outputStyle || !!+options.style || false
     )
   );
+}
+
+function handleInspect(options) {
+  if (existFile("./fileTree.json")) var tree = commands.scan(options);
+  else readFile("./fileTree.json", "utf8", function (err, data) {
+    if (err) throw Error("Could not read FileTree");
+    return (tree = data);
+  });
+  import("./displayEntry.mjs").then(function (val) {
+    if (!val || !val.displayEntry) throw Error("Could not display Entry");
+    var displayEntry = val.displayEntry;
+    Promise.resolve(tree).then(function (data) {
+      displayEntry(data.contents[0], "." + (options.select || options.sel || "")).then(function (out) {
+        console.log(out);
+      });
+    }).catch(Error);
+  });
 }
 
 module.exports = commands;
