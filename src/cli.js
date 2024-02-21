@@ -108,6 +108,7 @@ function handlePrint(options, tree) {
     );
   }
   if (!!options.noprint || !!options.npr) return;
+  if (tree.folderCount == 0 || (tree.folderCount == 1 && tree.fileCount == 0)) return;
   console.log(
     printTree(
       tree.contents[0],

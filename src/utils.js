@@ -103,7 +103,7 @@ function convertFilePath(path = "", start) {
   var ext = getFileExtension(name);
   return objPath.join(".") + "." + name.replace(ext, ext.replace(".", "?"))
 }
-console.log(convertFilePath("src/cli.js"));
+
 // based from https://stackoverflow.com/a/54098693
 var cmds = [
   "scan",
