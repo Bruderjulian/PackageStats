@@ -1,20 +1,16 @@
 import { doubleClick } from "./doubleClick.js";
-import * as fileTree from "../fileTree.json" assert { type: "json" };
 import { displayEntry } from "../src/displayEntry.mjs";
 
-var inputTree = JSON.parse(JSON.stringify(fileTree)).default;
+var inputTree;
 var entry_info = document.getElementById("entry_info");
-var args = {};
-setTimeout(fetchArgs, 200);
+var args = { path: "fileTree_saved.json", loose: false };
 
 var doubleClickHandler = doubleClick(
   function (e) {
     if (!args.loose) var path = getPath(e.target);
     else var path = "." + e.target.id || e.target.innerHTML;
     if (typeof path !== "string") throw Error("Could generate Object Path");
-    displayEntry(inputTree, path).then(function (out) {
-      entry_info.innerHTML = out;
-    });
+    entry_info.innerHTML = displayEntry(inputTree, path);
   },
   function (e) {
     if (e.target.className == "folder_name") {
@@ -98,11 +94,13 @@ function getPath(node) {
   return "." + path;
 }
 
-async function fetchArgs() {
-  var url = window.location.href + "/args.data"
+export async function fetchArgs() {
+  var url = window.location.href + "/args.data";
   var res = await (await fetch(url)).json();
   if (!res) console.warn("Could not fetch args! Will use defaults");
-  for (const i of Object.keys(res)) {
+  for (const i of Object.keys((res ||= {}))) {
     args[i] = res[i];
   }
+  if (!args.path) throw Error("Could not find FileTree");
+  inputTree = await (await fetch(args.path)).json();
 }

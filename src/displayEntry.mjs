@@ -1,9 +1,8 @@
-
 var PathCache = {};
 var EntryCache = {};
 
-export async function displayEntry(entry, path) {
-  if (arguments.length == 2) {
+export function displayEntry(entry, path) {
+  if (arguments.length >= 2) {
     if (typeof path !== "string") throw SyntaxError("Invalid Object path");
     if (!isObject(entry)) throw SyntaxError("Invalid Tree Object");
     if (PathCache.hasOwnProperty(path)) return PathCache[path];
@@ -12,7 +11,8 @@ export async function displayEntry(entry, path) {
     var out = format(entry);
     PathCache[path] = out;
   } else if (arguments.length == 1) {
-    if (EntryCache.hasOwnProperty(entry.fullPath)) return EntryCache[entry.fullPath];
+    if (EntryCache.hasOwnProperty(entry.fullPath))
+      return EntryCache[entry.fullPath];
     var out = format(entry);
     EntryCache[entry.fullPath] = out;
   }
@@ -27,7 +27,8 @@ export function format(entry) {
   displayObj.size = convertSize(entry.size);
   var str = JSON.stringify(displayObj, null, 4)
     .replaceAll('"', "")
-    .replaceAll(",", "");
+    .replaceAll(",", "")
+    .replaceAll("    ", "  ");
   str = str.substring(2, str.length - 1);
   return str;
 }
@@ -46,26 +47,33 @@ function roundTo(num, percision = 3) {
   return Math.round(num * exponent) / exponent;
 }
 
-
 function findEntry(tree = {}, path = "") {
   var properties = path.split(".").slice(1);
   if (properties.at(-1).includes("?")) {
-    properties[properties.length - 1] = properties[properties.length - 1].replaceAll("?", ".");
+    properties[properties.length - 1] = properties[
+      properties.length - 1
+    ].replaceAll("?", ".");
   }
   if (!tree || !tree.contents || !properties || properties.length == 0) return;
   if (properties[0].replaceAll(" ", "") == "") return tree.contents;
-  if (!tree.contents.map(a => a.name).includes(properties[0])) return filterTree(tree, properties[0]);
+  if (!tree.contents.map((a) => a.name).includes(properties[0])) {
+    let out = filterTree(tree, properties[0]);
+    if (out) return out;
+    return filterTree(tree, properties[0], true);
+  }
   return findEntryByPath(tree, properties);
 }
 
-function filterTree(obj, name) {
-  if (!isObject(obj)) return undefined;
-  if (isEqual(obj.name, name)) return obj;
-  if (!Array.isArray(obj.contents)) return undefined;
-  let i, entry, len = obj.contents.length;
+function filterTree(obj, name, checkloose = false) {
+  if (!isObject(obj)) return;
+  if (isEqual(obj.name, name, checkloose)) return obj;
+  if (!Array.isArray(obj.contents)) return;
+  let i,
+    entry,
+    len = obj.contents.length;
   for (i = 0; i < len; i++) {
     if (!isObject(obj.contents[i])) continue;
-    entry = filterTree(obj.contents[i], name);
+    entry = filterTree(obj.contents[i], name, checkloose);
     if (entry) return entry;
   }
 }
@@ -79,7 +87,11 @@ function findEntryByPath(tree, properties) {
       continue;
     }
     for (j = 0, len = tree.contents.length; j < len; j++) {
-      if (!isObject(tree.contents[j]) || !isEqual(tree.contents[j].name, properties[i])) continue;
+      if (
+        !isObject(tree.contents[j]) ||
+        !isEqual(tree.contents[j].name, properties[i])
+      )
+        continue;
       tree = tree.contents[j];
       break;
     }
@@ -91,7 +103,10 @@ function isObject(obj) {
   return typeof obj == "object" && !Array.isArray(obj) && obj !== null;
 }
 
-function isEqual(str1, str2) {
+function isEqual(str1, str2, checkloose = false) {
   if (typeof str1 !== "string" || typeof str2 !== "string") return false;
-  return str1.toString().toLowerCase() == str2.toString().toLowerCase();
+  str1 = str1.toString().toLowerCase();
+  str2 = str2.toString().toLowerCase();
+  if (!checkloose) return str1 == str2;
+  else return str1.includes(str2) || str2.includes(str1);
 }

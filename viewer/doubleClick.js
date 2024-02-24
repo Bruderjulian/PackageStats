@@ -2,6 +2,7 @@
  * Creates a event handler which mutually exclusively responds to either a single or double (or higher) click/tap.
  * Copyright (c)2012 Stephen M. McKamey.
  * Licensed under The MIT License.
+ *
  * modified Code from: https://github.com/mckamey/doubleTap.js
  *
  * @param {function...} actions the possible actions to take in order by number of clicks

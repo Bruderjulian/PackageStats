@@ -97,11 +97,14 @@ function validateNum(num, min, max) {
 function convertFilePath(path = "", start) {
   if (typeof path !== "string") return;
   path = normalize(path);
-  var name = getFileName(path)
-  var objPath = path.substring(path.indexOf("/"), path.lastIndexOf("/")).split("/");
-  if (typeof start === "string") objPath = objPath.slice(objPath.indexOf(start));
+  var name = getFileName(path);
+  var objPath = path
+    .substring(path.indexOf("/"), path.lastIndexOf("/"))
+    .split("/");
+  if (typeof start === "string")
+    objPath = objPath.slice(objPath.indexOf(start));
   var ext = getFileExtension(name);
-  return objPath.join(".") + "." + name.replace(ext, ext.replace(".", "?"))
+  return objPath.join(".") + "." + name.replace(ext, ext.replace(".", "?"));
 }
 
 // based from https://stackoverflow.com/a/54098693
@@ -142,8 +145,8 @@ function processExcludeString(string) {
     strict && noDefaults
       ? string.slice(2)
       : strict || noDefaults
-        ? string.slice(1)
-        : string;
+      ? string.slice(1)
+      : string;
   return { str, strict, noDefaults };
 }
 
@@ -200,14 +203,15 @@ const mimeTypes = {
 
 var server;
 function startViewer(port = 8080, ip = "127.0.0.1", args) {
+  if (server) closeViewer();
   if (!validateIpAndPort(ip, (port = parseInt(port)))) {
     throw Error("Invalid IP or Port - " + ip + ":" + port);
   }
-  if (!existFile("./fileTree.json")) throw Error("Nothing scanned yet");
   server = createServer(function (req, response) {
     var path = normalize(req.url.replace(/[^a-z0-9/.]/gi, "_"));
     if (path === "/") path = "./viewer/viewer.html";
-    else if (path === "/fileTree.json") path = "./fileTree.json";
+    else if (path === "/" + getFileName(args.path))
+      path = "./" + getFileName(args.path);
     else if (path === "/src/displayEntry.mjs") path = "./src/displayEntry.mjs";
     else if (path == "/favicon.ico") path = "viewer/assets/favicon.ico";
     else if (path == "/args.data") {
@@ -217,9 +221,7 @@ function startViewer(port = 8080, ip = "127.0.0.1", args) {
       response.write(JSON.stringify(args));
       response.end();
       return;
-    }
-    else path = "./viewer" + path;
-
+    } else path = "./viewer" + path;
     let encoding = req.headers["accept-encoding"] || "";
     if (encoding.match(/\bgzip\b/)) encoding = "Gzip";
     else if (encoding.match(/\bdeflate\b/)) encoding = "Deflate";
@@ -231,8 +233,8 @@ function startViewer(port = 8080, ip = "127.0.0.1", args) {
     response.writeHead(200, {
       "Content-Type": mimeTypes[getFileExtension(path)] || mimeTypes[".html"],
       "Content-Encoding": encoding.toLowerCase(),
-      "Cache-Control": "no-cache",
-      //"Cache-Control": "max-age=150",
+      //"Cache-Control": "no-cache",
+      "Cache-Control": "max-age=150",
     });
   }).listen(port, ip);
   console.log("Starting Viewer on", ip + ":" + port);
@@ -260,7 +262,9 @@ function closeViewer() {
   if (!server) return;
   console.log("Stopping Viewer...");
   server.close();
-  setImmediate(function () { server.emit('close') });
+  setImmediate(function () {
+    server.emit("close");
+  });
 }
 
 module.exports = {
@@ -278,6 +282,7 @@ module.exports = {
   convertFilePath,
   parseExclude,
   startViewer,
+  validateIpAndPort,
   closeViewer,
   parseArgs,
 };

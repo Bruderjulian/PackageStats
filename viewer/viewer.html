@@ -31,10 +31,20 @@
     </div>
 
     <script type="module">
-      import { parseFileTree, generateFileTree } from "./file_tree.js";
+      import {
+        parseFileTree,
+        generateFileTree,
+        fetchArgs as fetchServerArgs,
+      } from "./file_tree.js";
       window.onload = function () {
-        generateFileTree();
-        parseFileTree("file_tree");
+        fetchServerArgs()
+          .then(() => {
+            generateFileTree();
+            parseFileTree("file_tree");
+          })
+          .catch((err) => {
+            throw Error("Could not parse FileTree");
+          });
       };
     </script>
   </body>

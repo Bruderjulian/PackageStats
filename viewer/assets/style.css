@@ -1,11 +1,9 @@
-
 @font-face {
   font-family: "Space Mono";
   font-style: normal;
   font-weight: 400;
   src: local("Space Mono");
-  src: url("./textformat.woff2")
-    format("woff2");
+  src: url("./textformat.woff2") format("woff2");
   font-display: swap;
 }
 
@@ -25,19 +23,15 @@ body {
 }
 
 pre {
-font-size: inherit;
-color: inherit;
-border: initial;
-padding: initial;
-font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  border: initial;
+  padding: initial;
+  font-family: inherit;
 }
 
 * {
   box-sizing: border-box;
-}
-
-[hidden] {
-  display: none;
 }
 
 .viewer {

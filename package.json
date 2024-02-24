@@ -1,6 +1,6 @@
 {
   "name": "packagestats",
-  "version": "3.0.0",
+  "version": "1.4.0",
   "description": "displays statistics about your package",
   "main": "index.js",
   "scripts": {
