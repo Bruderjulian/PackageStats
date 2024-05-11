@@ -107,7 +107,6 @@ function convertFilePath(path = "", start) {
   return objPath.join(".") + "." + name.replace(ext, ext.replace(".", "?"));
 }
 
-// based from https://stackoverflow.com/a/54098693
 var cmds = [
   "scan",
   "print",
@@ -117,7 +116,9 @@ var cmds = [
   "help",
   "packageInfo",
   "cleanup",
+  "setSaveFilePath",
 ];
+// based from https://stackoverflow.com/a/54098693
 function parseArgs() {
   var args = {},
     argv = process.argv.slice(2);
@@ -133,7 +134,7 @@ function parseArgs() {
     } else if (argv[i][0] === "-") {
       // flags
       args[argv[i].slice(1).replace("!", "")] = argv[i].indexOf("!") == -1;
-    } else throw Error("Invalid Arguments");
+    } else throw new ValidationError("Invalid Arguments");
   }
   return args;
 }
@@ -161,12 +162,12 @@ function parseExclude(str) {
   } else if (str.includes("file:/")) {
     let path = resolvePath(str.substring(str.indexOf("file:/") + 6));
     if (!existFile(path) || getFileExtension(path) !== ".json") {
-      throw Error("Could not find Exclude File on: " + path);
+      throw new EvalError("Could not find Exclude File on: " + path);
     }
     try {
       data = JSON.parse(JSON.stringify(readFileSync(path, "utf8")));
     } catch (error) {
-      throw Error("Could not read Data from File:" + path);
+      throw new EvalError("Could not read Data from File:" + path);
     }
   }
   var opts = processExcludeString(str);
@@ -201,19 +202,29 @@ const mimeTypes = {
   ".woff2": "font/woff2",
 };
 
+const filePaths = {
+  "/": "./viewer/viewer.html",
+  "/file_tree.js": "./viewer/file_tree.js",
+  "/doubleClick.js": "./viewer/doubleClick.js",
+  "/src/displayEntry.mjs": "./src/displayEntry.mjs",
+  "/assets/style.css": "./viewer/assets/style.css",
+  "/assets/file_tree.css": "./viewer/assets/file_tree.css",
+  "/assets/file.svg": "./viewer/assets/file.svg",
+  "/assets/folder_open.svg": "./viewer/assets/folder_open.svg",
+  "/assets/folder_close.svg": "./viewer/assets/folder_close.svg",
+  "/assets/textformat.woff2": "./viewer/assets/textformat.woff2",
+
+  "/favicon.ico": "viewer/assets/favicon.ico",
+};
+
 var server;
-function startViewer(port = 8080, ip = "127.0.0.1", args) {
+function startViewer(options, args) {
   if (server) closeViewer();
-  if (!validateIpAndPort(ip, (port = parseInt(port)))) {
-    throw Error("Invalid IP or Port - " + ip + ":" + port);
-  }
   server = createServer(function (req, response) {
     var path = normalize(req.url.replace(/[^a-z0-9/.]/gi, "_"));
-    if (path === "/") path = "./viewer/viewer.html";
+    if (filePaths.hasOwnProperty(path)) path = filePaths[path];
     else if (path === "/" + getFileName(args.path))
       path = "./" + getFileName(args.path);
-    else if (path === "/src/displayEntry.mjs") path = "./src/displayEntry.mjs";
-    else if (path == "/favicon.ico") path = "viewer/assets/favicon.ico";
     else if (path == "/args.data") {
       response.writeHead(200, {
         "Content-Type": "application/json",
@@ -221,7 +232,9 @@ function startViewer(port = 8080, ip = "127.0.0.1", args) {
       response.write(JSON.stringify(args));
       response.end();
       return;
-    } else path = "./viewer" + path;
+    } else path = undefined;
+    if (!path) throw new EvalError("Could not start the viewer");
+
     let encoding = req.headers["accept-encoding"] || "";
     if (encoding.match(/\bgzip\b/)) encoding = "Gzip";
     else if (encoding.match(/\bdeflate\b/)) encoding = "Deflate";
@@ -233,11 +246,12 @@ function startViewer(port = 8080, ip = "127.0.0.1", args) {
     response.writeHead(200, {
       "Content-Type": mimeTypes[getFileExtension(path)] || mimeTypes[".html"],
       "Content-Encoding": encoding.toLowerCase(),
-      //"Cache-Control": "no-cache",
-      "Cache-Control": "max-age=150",
+      "Cache-Control": "no-cache",
+      //"Cache-Control": "max-age=150",
     });
-  }).listen(port, ip);
-  console.log("Starting Viewer on", ip + ":" + port);
+  }).listen(options.port, options.ip);
+
+  console.log("Starting Viewer on", options.ip + ":" + options.port);
   console.log(
     terminal.link(
       terminal.color("View", terminal.colors.fg.green),
@@ -246,6 +260,7 @@ function startViewer(port = 8080, ip = "127.0.0.1", args) {
     "from Server"
   );
   console.log("To Stop Viewer press STRG+C");
+
   let onDataCallBack = (data) => {
     const byteArray = [...data];
     if (byteArray.length <= 0 || byteArray[0] !== 3) return;
@@ -267,6 +282,13 @@ function closeViewer() {
   });
 }
 
+class ValidationError extends Error {
+  constructor(message = "", ...args) {
+    super(message, ...args);
+    this.message = "Error at Validation: " + message;
+  }
+}
+
 module.exports = {
   isObject,
   normalize,
@@ -285,4 +307,5 @@ module.exports = {
   validateIpAndPort,
   closeViewer,
   parseArgs,
+  ValidationError,
 };

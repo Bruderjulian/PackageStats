@@ -1,6 +1,6 @@
 {
   "name": "packagestats",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "displays statistics about your package",
   "main": "index.js",
   "scripts": {
@@ -13,10 +13,11 @@
     "packageStats:cleanup": "node index.js cleanup",
     "packageStats:help": "node index.js help",
     "packageStats:packageInfo": "node index.js packageInfo",
+    "packageStats:setSaveFilePath": "node index.js setSaveFilePath",
     "commit": "git add . && git commit -m",
     "postcommit": "git push --all"
   },
-  "author": "Julian",
+  "author": "BruderJulian",
   "license": "MIT",
   "bin": {
     "packagestats": "./index.js"
@@ -30,7 +31,14 @@
     "viewer",
     "scanner",
     "packageStats",
-    "stats"
+    "stats",
+    "fs",
+    "project",
+    "info",
+    "file",
+    "folder",
+    "tree",
+    "filetree"
   ],
   "bugs": {
     "url": "https://github.com/Bruderjulian/PackageStats/issues"

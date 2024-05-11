@@ -1,4 +1,4 @@
-const { isObject } = require("./utils.js");
+const { isObject, ValidationError } = require("./utils.js");
 
 function flatten(arr, result = []) {
   for (let i = 0, length = arr.length; i < length; i++) {
@@ -51,9 +51,9 @@ function generate(tree, end, depths = []) {
 }
 
 module.exports = function printTree(tree, connect = false) {
-  if (!isObject(tree)) throw Error("Invalid FileTree");
+  if (!isObject(tree)) throw new ValidationError("Invalid FileTree");
   if (!connect) var out = generate(tree);
   else var out = stringifyTree(tree).join("\n");
-  if (typeof out !== "string") throw Error("Could not print FileTree");
+  if (typeof out !== "string") throw new ValidationError("Could not print FileTree");
   return out;
 };

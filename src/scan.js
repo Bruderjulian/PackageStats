@@ -13,6 +13,7 @@ const {
   getFileName,
   getFolderName,
   isObject,
+  ValidationError,
 } = require("./utils.js");
 
 var depth = 0;
@@ -76,24 +77,16 @@ async function loopFolder(options) {
   return files;
 }
 
-async function scanDir(options = {}) {
+async function scanDir(options) {
+  if (!isObject(options)) throw new ValidationError("Invalid Options");
+  options.path = normalize(options.path || "./");
   var time = Date.now();
   var contents = [];
-  if (typeof options == "string") options = { path: options || "./" };
-  else if (!isObject(options)) throw SyntaxError("Invalid Options");
-  options.path = normalize(options.path || "./");
-  options.isExcluded =
-    options.isExcluded ||
-    function () {
-      return false;
-    };
-  options.logging = options.logging || false;
-  options.withExtensions = options.withExtensions || true;
   if (!options.isExcluded(options.path)) {
     if (isFile(options.path)) {
       contents.push(scanFile(options));
     } else if (isFolder(options.path)) contents.push(await scanFolder(options));
-    else throw Error("Could not scan Path");
+    else throw EvalError("Could not scan Path");
   }
   return { contents, fileCount, folderCount, time: Date.now() - time };
 }

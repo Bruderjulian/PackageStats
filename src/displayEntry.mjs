@@ -3,11 +3,11 @@ var EntryCache = {};
 
 export function displayEntry(entry, path) {
   if (arguments.length >= 2) {
-    if (typeof path !== "string") throw SyntaxError("Invalid Object path");
-    if (!isObject(entry)) throw SyntaxError("Invalid Tree Object");
+    if (typeof path !== "string") throw new ValidationError("Invalid Object path");
+    if (!isObject(entry)) throw new ValidationError("Invalid Tree Object");
     if (PathCache.hasOwnProperty(path)) return PathCache[path];
     entry = findEntry(entry, path);
-    if (!isObject(entry)) throw Error("Could not find Entry at:" + path);
+    if (!isObject(entry)) throw EvalError("Could not find Entry at:" + path);
     var out = format(entry);
     PathCache[path] = out;
   } else if (arguments.length == 1) {
@@ -20,7 +20,7 @@ export function displayEntry(entry, path) {
 }
 
 export function format(entry) {
-  if (!isObject(entry)) throw SyntaxError("Invalid Entry to display");
+  if (!isObject(entry)) throw new ValidationError("Invalid Entry to display");
   var displayObj = {};
   for (const i of Object.keys(entry)) displayObj[i] = entry[i];
   if (entry.contents) displayObj.contents = entry.contents.map((a) => a.name);
@@ -79,8 +79,7 @@ function filterTree(obj, name, checkloose = false) {
 }
 
 function findEntryByPath(tree, properties) {
-  let i, j;
-  let len = tree.contents.length;
+  let i, j, len;
   for (i = 0; i < properties.length; i++) {
     if (properties[i] == "") {
       tree = tree.contents[0];
@@ -109,4 +108,11 @@ function isEqual(str1, str2, checkloose = false) {
   str2 = str2.toString().toLowerCase();
   if (!checkloose) return str1 == str2;
   else return str1.includes(str2) || str2.includes(str1);
+}
+
+class ValidationError extends Error {
+  constructor(message = "", ...args) {
+    super(message, ...args);
+    this.message = "Error at Validation: " + message;
+  }
 }

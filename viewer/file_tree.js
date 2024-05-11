@@ -98,9 +98,7 @@ export async function fetchArgs() {
   var url = window.location.href + "/args.data";
   var res = await (await fetch(url)).json();
   if (!res) console.warn("Could not fetch args! Will use defaults");
-  for (const i of Object.keys((res ||= {}))) {
-    args[i] = res[i];
-  }
+  for (const i of Object.keys((res ||= {}))) args[i] = res[i];
   if (!args.path) throw Error("Could not find FileTree");
   inputTree = await (await fetch(args.path)).json();
 }
