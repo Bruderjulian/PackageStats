@@ -54,7 +54,7 @@ function findEntry(tree = {}, path = "") {
     return val.replaceAll("?", ".");
   });
   if (!tree || !tree.contents || !properties || properties.length == 0) return;
-  if (properties[0].replaceAll(" ", "") == "") return tree.contents[0];
+  if (properties[0].replaceAll(" ", "") == "") return tree;
   if (!tree.contents.map((a) => a.name).includes(properties[0])) {
     let out = filterTree(tree, properties[0]);
     if (out) return out;
@@ -67,10 +67,8 @@ function filterTree(obj, name, checkloose = false) {
   if (!isObject(obj)) return;
   if (isEqual(obj.name, name, checkloose)) return obj;
   if (!Array.isArray(obj.contents)) return;
-  let i,
-    entry,
-    len = obj.contents.length;
-  for (i = 0; i < len; i++) {
+  let i, entry, len;
+  for (i = 0, len = obj.contents.length; i < len; i++) {
     if (!isObject(obj.contents[i])) continue;
     entry = filterTree(obj.contents[i], name, checkloose);
     if (entry) return entry;
@@ -78,18 +76,19 @@ function filterTree(obj, name, checkloose = false) {
 }
 
 function findEntryByPath(tree, properties) {
-  let i, j, len;
-  for (i = 0; i < properties.length; i++) {
+  let i, j, len2, len;
+  for (i = 0, len = properties.length; i < len; i++) {
     if (properties[i] == "") {
       tree = tree.contents[0];
       continue;
     }
-    for (j = 0, len = tree.contents.length; j < len; j++) {
+    for (j = 0, len2 = tree.contents.length; j < len2; j++) {
       if (
         !isObject(tree.contents[j]) ||
         !isEqual(tree.contents[j].name, properties[i])
-      )
+      ) {
         continue;
+      }
       tree = tree.contents[j];
       break;
     }

@@ -202,7 +202,8 @@ function handleInspect(options) {
       if (!data || !data[0].displayEntry || !data[1])
         throw new EvalError("Could not display Entry");
       let path = convertFilePath(options.select);
-      let out = data[0].displayEntry({contents: [data[1]]}, path);
+      //let out = data[0].displayEntry({contents: [data[1]]}, path);
+      let out = data[0].displayEntry(data[1], path);
       console.log(out);
       return data[1];
     })

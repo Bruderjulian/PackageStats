@@ -76,7 +76,7 @@ function getFileName(path, withExtension = true) {
 }
 
 function getFolderName(path) {
-  return normalize(path.match(/([^\/]*)\/*$/)[1]);
+  return normalize(getFullPath(path).match(/([^\/]*)\/*$/)[1]);
 }
 
 function validateIpAndPort(ip, port) {
@@ -97,14 +97,11 @@ function validateNum(num, min, max) {
 function convertFilePath(path = "", start) {
   if (typeof path !== "string") return;
   path = normalize(path);
-  var name = getFileName(path);
-  var objPath = path
-    .substring(path.indexOf("/"), path.lastIndexOf("/"))
-    .split("/");
-  if (typeof start === "string")
-    objPath = objPath.slice(objPath.indexOf(start));
-  var ext = getFileExtension(name);
-  return objPath.join(".") + "." + name.replace(ext, ext.replace(".", "?"));
+  var paths = path.split("/");
+  paths = paths.map((val) => {
+    return val.replaceAll(".", "?");
+  });
+  return "." + paths.join(".");
 }
 
 var cmds = [
