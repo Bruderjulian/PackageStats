@@ -1,33 +1,5 @@
 const { isObject, ValidationError } = require("./utils.js");
 
-function flatten(arr, result = []) {
-  for (let i = 0, length = arr.length; i < length; i++) {
-    if (Array.isArray(arr[i])) flatten(arr[i], result);
-    else result.push(arr[i]);
-  }
-  return result;
-}
-
-function prefixChild(strs, last) {
-  return strs.map(function (s, i) {
-    var prefix = i === 0 ? (last ? "└─" : "├─") : last ? "  " : "│ ";
-    return prefix + s;
-  });
-}
-
-function stringifyTree(tn) {
-  var contents = (tn.contents || []).slice();
-  if (contents.length === 0) return ["─ " + tn.name];
-  return ["┬ " + tn.name].concat(
-    flatten(
-      contents.map(function (c, i) {
-        var strs = stringifyTree(c);
-        return prefixChild(strs, i === contents.length - 1);
-      })
-    )
-  );
-}
-
 function compose(tree, end, depths) {
   var i,
     ret = "\r\n";
@@ -50,10 +22,9 @@ function generate(tree, end, depths = []) {
   return result;
 }
 
-module.exports = function printTree(tree, connect = false) {
+module.exports = function printTree(tree) {
   if (!isObject(tree)) throw new ValidationError("Invalid FileTree");
-  if (!connect) var out = generate(tree);
-  else var out = stringifyTree(tree).join("\n");
+  var out = generate(tree);
   if (typeof out !== "string") throw new ValidationError("Could not print FileTree");
   return out;
 };

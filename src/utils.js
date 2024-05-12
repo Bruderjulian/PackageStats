@@ -223,9 +223,9 @@ function startViewer(options, args) {
   server = createServer(function (req, response) {
     var path = normalize(req.url.replace(/[^a-z0-9/.]/gi, "_"));
     if (filePaths.hasOwnProperty(path)) path = filePaths[path];
-    else if (path === "/" + getFileName(args.path))
+    else if (path === "/" + getFileName(args.path)) {
       path = "./" + getFileName(args.path);
-    else if (path == "/args.data") {
+    } else if (path == "/args.data") {
       response.writeHead(200, {
         "Content-Type": "application/json",
       });

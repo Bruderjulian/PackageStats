@@ -1,16 +1,16 @@
 //heavily modified code from https://www.npmjs.com/package/ansi-escapes
-const isWindows =
+var terminal = {};
+terminal.isWindows =
   (typeof window == "undefined" || typeof window.document == "undefined") &&
   require("process").platform === "win32";
 
-var terminal = {};
 terminal.clearScreen = "\u001Bc";
 
-terminal.clearTerminal = isWindows
+terminal.clearTerminal = terminal.isWindows
   ? `\u001B[2J\u001B[0f`
   : `\u001B[2J\u001B[3J\u001B["H`;
 
-terminal.link = (text, url, color) =>
+terminal.link = (text, url) =>
   ["\u001B]8;;", url, "\u0007", text, "\u001B]8;;\u0007"].join("");
 
 terminal.color = (text, color) => color + text + "\x1b[0m";
@@ -34,7 +34,7 @@ terminal.colors = {
     cyan: "\x1b[36m",
     white: "\x1b[37m",
     gray: "\x1b[90m",
-    crimson: "\x1b[38m", // Scarlet
+    crimson: "\x1b[38m",
   },
   bg: {
     black: "\x1b[40m",
@@ -79,10 +79,9 @@ terminal.helpMenu = `
 	  --path, --p                Path to Package (default is ./)
           --select, --sel            File or Folder to inspect
           --port,                    Port to open the File Tree Viewer (default is 8080)
-          --outputStyle, --style     Style to print the Tree (default is 0)
+          --ip                       IP to open the File Tree Viewer (default is localhost (127.0.0.1))
           -save, -s                  save the ouput to file. (default is false)
           -log, -l                   log Information about the scan (default is false)
-          -noprint, -npr             disables the printing of the scanned File Tree (default is false)
 
 	${terminal.link(
     terminal.color("Examples", terminal.colors.fg.red),

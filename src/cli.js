@@ -15,8 +15,8 @@ const printTree = require("./printTree.js");
 const scanDir = require("./scan.js");
 const terminal = require("./terminal.js");
 
+var saveFilePath = "fileTree_saved.json";
 var commands = {
-  saveFilePath: "fileTree_saved.json",
   scan: function (options = "./", save = false, log = true) {
     if (!isObject(options)) options = { path: options };
     options.save = options.save || save;
@@ -40,20 +40,11 @@ var commands = {
       }
     });
   },
-  print: function (options, path) {
-    if (!isObject(options)) options = { style: options };
-    options.style = parseInt(options.style, 10) || 0;
-    options.path = options.path || options.p || path || commands.saveFilePath;
+  print: function (options) {
+    if (!isObject(options)) options = { path: options };
+    options.path = options.path || options.p || saveFilePath;
     if (typeof options.path !== "string" || options.path == "")
       throw new ValidationError("Invalid SaveFile Path");
-    if (
-      typeof options.style !== "number" ||
-      isNaN(options.style) ||
-      options.style < 0 ||
-      options.style > 1
-    ) {
-      throw new ValidationError("Invalid Style: " + options.style);
-    }
     readFileTree(options.path)
       .then(function (data) {
         handlePrint(options, data);
@@ -65,7 +56,7 @@ var commands = {
   inspect: function (options = {}, path) {
     if (typeof options == "string") options = { select: options };
     else if (!isObject(options)) throw new ValidationError("Invalid Argument");
-    options.path = options.path || options.p || path || commands.saveFilePath;
+    options.path = options.path || options.p || path || saveFilePath;
     options.select = options.select || options.sel || "";
     if (typeof options.path !== "string")
       throw new ValidationError("Invalid SaveFile Path");
@@ -74,7 +65,7 @@ var commands = {
     return handleInspect(options);
   },
   view: function (options = 8080, ip) {
-    args = { loose: false, path: commands.saveFilePath };
+    args = { loose: false, path: saveFilePath };
     if (!isObject(options)) options = { port: options };
     options.ip = options.ip || ip || "127.0.0.1";
     options.port = options.port || 8080;
@@ -90,8 +81,7 @@ var commands = {
         }
       }
     }
-    if (!existFile(commands.saveFilePath))
-      throw new Error("Nothing scanned yet");
+    if (!existFile(saveFilePath)) throw new Error("Nothing scanned yet");
     startViewer(options, args);
   },
   closeViewer: function () {
@@ -121,7 +111,7 @@ var commands = {
     if (typeof options === "string") options = { path: options };
     if (!isObject(options)) throw new ValidationError("Invalid Options");
 
-    options.path = options.path || options.p || commands.saveFilePath;
+    options.path = options.path || options.p || saveFilePath;
     if (typeof options.path !== "string")
       throw new ValidationError("Invalid Path!");
 
@@ -131,7 +121,7 @@ var commands = {
     if (typeof options == "string") options = { path: options };
     if (!isObject(options)) throw new ValidationError("Invalid Options");
 
-    options.path = path.path || path.p || commands.saveFilePath;
+    options.path = path.path || path.p || saveFilePath;
     if (typeof options.path !== "string" || options.path === "")
       throw new ValidationError("Invalid SaveFile Path");
 
@@ -140,7 +130,7 @@ var commands = {
     else if (ext !== ".json")
       throw new ValidationError("Invalid SaveFile Extension: " + ext);
     if (!!options.log) console.log("Setting SaveFile Path to:", path);
-    commands.saveFilePath = path;
+    saveFilePath = path;
   },
 };
 
@@ -167,7 +157,7 @@ async function handleScan(options) {
   if (options.log) handlePrint(options, tree);
   if (!options.save) return tree;
   writeFile(
-    commands.saveFilePath,
+    saveFilePath,
     JSON.stringify(tree.contents[0]),
     "utf8",
     function (err) {
@@ -179,14 +169,14 @@ async function handleScan(options) {
 
 function handlePrint(options, tree) {
   if (!tree.hasOwnProperty("folderCount")) {
-    console.log(printTree(tree, !!+options.style || false));
+    console.log(printTree(tree));
     return;
   }
   if (
     tree.folderCount !== 0 &&
     !(tree.folderCount == 1 && tree.fileCount == 0)
   ) {
-    console.log(printTree(tree.contents[0], !!+options.style || false));
+    console.log(printTree(tree.contents[0]));
   }
   console.log(
     "Scanned",
@@ -202,9 +192,9 @@ function handlePrint(options, tree) {
 
 function handleInspect(options) {
   var tree;
-  if (!existFile(commands.saveFilePath)) tree = commands.scan(options);
+  if (!existFile(saveFilePath)) tree = commands.scan(options);
   else {
-    tree = readFileTree(options.path || options.p || commands.saveFilePath);
+    tree = readFileTree(options.path || options.p || saveFilePath);
   }
   var displayEntry = import("./displayEntry.mjs");
   Promise.all([displayEntry, tree])

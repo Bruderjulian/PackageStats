@@ -3,7 +3,8 @@ var EntryCache = {};
 
 export function displayEntry(entry, path) {
   if (arguments.length >= 2) {
-    if (typeof path !== "string") throw new ValidationError("Invalid Object path");
+    if (typeof path !== "string")
+      throw new ValidationError("Invalid Object path");
     if (!isObject(entry)) throw new ValidationError("Invalid Tree Object");
     if (PathCache.hasOwnProperty(path)) return PathCache[path];
     entry = findEntry(entry, path);
@@ -37,7 +38,7 @@ var SizeNames = ["B", "KB", "MB", "GB", "TB"];
 function convertSize(size) {
   if (typeof size !== "number" || isNaN(size)) return size;
   var i = Math.floor(Math.max(Math.log10(size), 0) / 3);
-  var num = roundTo(size / 1000 ** i, 3);
+  var num = roundTo(size / 1000 ** i, 1);
   return num + " " + (SizeNames[i] || "10^" + i + " B");
 }
 
@@ -49,11 +50,9 @@ function roundTo(num, percision = 3) {
 
 function findEntry(tree = {}, path = "") {
   var properties = path.split(".").slice(1);
-  if (properties.at(-1).includes("?")) {
-    properties[properties.length - 1] = properties[
-      properties.length - 1
-    ].replaceAll("?", ".");
-  }
+  properties = properties.map((val) => {
+    return val.replaceAll("?", ".");
+  });
   if (!tree || !tree.contents || !properties || properties.length == 0) return;
   if (properties[0].replaceAll(" ", "") == "") return tree.contents[0];
   if (!tree.contents.map((a) => a.name).includes(properties[0])) {
