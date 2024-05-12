@@ -67,7 +67,7 @@ var commands = {
     else if (!isObject(options)) throw new ValidationError("Invalid Argument");
     options.path = options.path || options.p || path || commands.saveFilePath;
     options.select = options.select || options.sel || "";
-    if (typeof options.path !== "string" || options.path == "")
+    if (typeof options.path !== "string")
       throw new ValidationError("Invalid SaveFile Path");
     if (typeof options.select !== "string")
       throw new ValidationError("Invalid Selector to inspect");
@@ -212,7 +212,7 @@ function handleInspect(options) {
       if (!data || !data[0].displayEntry || !data[1])
         throw new EvalError("Could not display Entry");
       let path = convertFilePath(options.select);
-      let out = data[0].displayEntry(data[1], path);
+      let out = data[0].displayEntry({contents: [data[1]]}, path);
       console.log(out);
       return data[1];
     })

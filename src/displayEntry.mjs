@@ -55,7 +55,7 @@ function findEntry(tree = {}, path = "") {
     ].replaceAll("?", ".");
   }
   if (!tree || !tree.contents || !properties || properties.length == 0) return;
-  if (properties[0].replaceAll(" ", "") == "") return tree.contents;
+  if (properties[0].replaceAll(" ", "") == "") return tree.contents[0];
   if (!tree.contents.map((a) => a.name).includes(properties[0])) {
     let out = filterTree(tree, properties[0]);
     if (out) return out;
