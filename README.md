@@ -1,7 +1,8 @@
 
 # PackageStats
 
-A Package (or generally speaking, a Project) Scanner and Viewer! It scans all entries and outputs their File Stats and other information (See [Usage](#usage) & [Scanner Output](#Scanner-Output)).
+A Package (or generally speaking, a Project) Scanner and Viewer! It scans all entries and outputs their File Stats and other information.
+(See [Usage](#usage) & [Scanner Output](#Scanner-Output))
 
 ## Contents
 
@@ -59,11 +60,11 @@ Nearly all methods are configurable (See [API](#api)).
 
 ### Scanner
 
-#### scan({ options })
+#### scan(path, save, log)
 
-Scans all entries and outputs their File Stats and other information (See [Usage](#usage)).
+Scans all entries and outputs their File Stats and other information.
 
-returns the filetree as `Object` (See Sanner Output). Logging and Saving can optionally be enabled with the `log` and `save` arguments.
+returns the filetree as `Object` (See [Scanner Output](#Scanner-Output)). Logging and Saving can optionally be enabled with the `log` and `save` arguments.
 
 ```javascript
  packageStats.scan(options)
@@ -80,6 +81,8 @@ returns the filetree as `Object` (See Sanner Output). Logging and Saving can opt
 | `path`  | `string`  | The path to scan           |
 | `save`  | `bool`    | Enables saving the scan    |
 | `log`  | `bool`     | Enables logging of current scanning Information |
+| `exclude` | `string` | Excludes an Entry if the condition or pattern is matched ([Excluding](#Excluding)) |
+| `withExtensions`  | `bool` | Enables/Disables File Extensions |
 
 
 --- 
@@ -101,7 +104,7 @@ Returns the formatted output as `String` and logs it to the console.
 | `path`    | `string` |  (**Required**) path to File Tree Save (default is value of `SaveFile Path`) |
 
 
-#### inspect({ options })
+#### inspect(id, path)
 
 Inspects an Element from the fileTree.
 
@@ -115,11 +118,11 @@ Inspects an Element from the fileTree.
 
 | Parameter | Type     | Description                       |
 | :-------- | :------- | :-------------------------------- |
-| `Id`      | `string` | (**Required**) Name of the File   |
+| `id`      | `string` | (**Required**) Name of the File   |
 | `Path`    | `string` | (**Required**) path to File Tree Save (default is value of `SaveFile Path`) |
 
 
-#### openViewer({ options })
+#### openViewer(port, ip)
 
 Opens the Viewer (See Viewer).
 
@@ -197,6 +200,12 @@ The Output is an `Object` with following structure
 
 ---
 
+## Viewer
+
+Displayes a Scan Save as File Tree. By clicking on an entry, the according information will be formatted and displayed.
+The Viewer can be opened with the `openViewer` function/command and gracefully closed with the `closeViewer` function/command or by pressing `STRG + C` in the terminal.
+---
+
 ## Todo
 
 - Better saving Support
@@ -210,6 +219,8 @@ The Output is an `Object` with following structure
 Contributions are always welcome!
 
 If you find a bug or want to propose a feature, please open an issuse or contact me!
+
+---
 
 ## License
 
