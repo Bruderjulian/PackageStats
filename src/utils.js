@@ -136,7 +136,7 @@ function parseArgs() {
   return args;
 }
 
-function processExcludeString(string) {
+function processString(string) {
   let strict = string[0] === "%" || string[1] === "%";
   let noDefaults = string[0] === "!" || string[1] === "!";
   let str =
@@ -148,7 +148,7 @@ function processExcludeString(string) {
   return { str, strict, noDefaults };
 }
 
-function parseExclude(str) {
+function parseFileSpecificator(str, skipDefaults = false) {
   if (typeof str !== "string") return;
   var data = [];
   if (str.includes("regex:")) {
@@ -159,17 +159,17 @@ function parseExclude(str) {
   } else if (str.includes("file:/")) {
     let path = resolvePath(str.substring(str.indexOf("file:/") + 6));
     if (!existFile(path) || getFileExtension(path) !== ".json") {
-      throw new EvalError("Could not find Exclude File on: " + path);
+      throw new EvalError("Could not find File on: " + path);
     }
     try {
       data = JSON.parse(JSON.stringify(readFileSync(path, "utf8")));
     } catch (error) {
-      throw new EvalError("Could not read Data from File:" + path);
+      throw new EvalError("Could not read data from File:" + path);
     }
   }
-  var opts = processExcludeString(str);
+  var opts = processString(str);
   if (opts.str.replaceAll(" ", "") != "") data.push(opts.str);
-  if (!opts.noDefaults) {
+  if (!opts.noDefaults && !skipDefaults) {
     let ignoreDefault = JSON.parse(JSON.stringify(require("../ignore.json")));
     data = data.concat(
       ignoreDefault.filter(function (i) {
@@ -299,7 +299,7 @@ module.exports = {
   getFileName,
   getFolderName,
   convertFilePath,
-  parseExclude,
+  parseFileSpecificator,
   startViewer,
   validateIpAndPort,
   closeViewer,

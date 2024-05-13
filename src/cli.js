@@ -5,7 +5,7 @@ const {
   existFile,
   convertFilePath,
   startViewer,
-  parseExclude,
+  parseFileSpecificator,
   closeViewer,
   validateIpAndPort,
   ValidationError,
@@ -135,7 +135,7 @@ var commands = {
 };
 
 async function handleScan(options) {
-  let isExcluded = parseExclude(options.exclude);
+  let isExcluded = parseFileSpecificator(options.exclude);
   var tree = await scanDir({
     path: options.path,
     isExcluded:
