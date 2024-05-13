@@ -13,6 +13,9 @@ A Package (or generally speaking, a Project) Scanner and Viewer! It scans all en
 - [Todo](#todo)
 - [Contributing](#contributing)
 - [License](#license)
+
+---
+
 ## Installation
 
 Install it with npm globally:
@@ -46,6 +49,8 @@ Both can be imported and can be directly in the code:
  console.log(packageStats.scan())
 ```
 Nearly all methods are configurable (See [API](#api)).
+
+---
 
 ## API
 
@@ -93,8 +98,6 @@ Returns the formatted output as `String` and logs it to the console.
 | `path`    | `string` |  (**Required**) path to File Tree Save (default is value of `SaveFile Path`) |
 
 
----
-
 #### inspect({ options })
 
 Inspects an Element from the fileTree.
@@ -112,8 +115,6 @@ Inspects an Element from the fileTree.
 | `Id`      | `string` | (**Required**) Name of the File   |
 | `Path`    | `string` | (**Required**) path to File Tree Save (default is value of `SaveFile Path`) |
 
-
----
 
 #### openViewer({ options })
 
@@ -135,8 +136,6 @@ Opens the Viewer (See Viewer).
 | `args`    | `string` | args for the viewer               |
 
 
----
-
 #### closeViewer()
 
 Closes the viewer
@@ -145,16 +144,12 @@ Closes the viewer
  packageStats.closeViewer()
 ```
 
----
-
 #### cleanup()
 
 ```javascript
  packageStats.cleanup()
 ```
 cleans up the saved scan 
-
----
 
 #### help()
 
@@ -163,8 +158,6 @@ prints out the help info
 ```javascript
  packageStats.help()
 ```
-
----
 
 #### packageInfo(selector)
 
@@ -199,6 +192,8 @@ The Output is an `Object` with following structure
  - Creation Time (`birthtime`)
  - Last Modified Time (`lastModified`)
 
+---
+
 ## Todo
 
 - Better saving Support
@@ -206,6 +201,7 @@ The Output is an `Object` with following structure
 - Bundeling
 
 ---
+
 ## Contributing
 
 Contributions are always welcome!
