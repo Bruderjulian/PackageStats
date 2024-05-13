@@ -1,7 +1,7 @@
 
 # PackageStats
 
-A Package (or generally speaking, a Project) Scanner and Viewer! It scans all entries and outputs their File Stats and other information (See [Usage](#usage)).
+A Package (or generally speaking, a Project) Scanner and Viewer! It scans all entries and outputs their File Stats and other information (See [Usage](#usage) & [Scanner Output](#Scanner-Output)).
 
 ## Contents
 
@@ -10,6 +10,7 @@ A Package (or generally speaking, a Project) Scanner and Viewer! It scans all en
 - [Installation](#installation)
 - [Usage](#usage)
 - [API](#api)
+- [Scanner Output](#Scanner-Output)
 - [Todo](#todo)
 - [Contributing](#contributing)
 - [License](#license)
@@ -28,6 +29,8 @@ or locally
 ```bash
   npm install packageStats 
 ```
+
+--- 
 ## Usage
 
 if installed globally, it can be called with the Cli:
