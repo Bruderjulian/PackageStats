@@ -1,7 +1,7 @@
 
 # PackageStats
 
-A Package (or generally speaking, a Project) Scanner and Viewer! It scans all entries and outputs their File Stats and other information (See Usage).
+A Package (or generally speaking, a Project) Scanner and Viewer! It scans all entries and outputs their File Stats and other information (See [Usage](#usage)).
 
 ## Contents
 
@@ -45,7 +45,7 @@ Both can be imported and can be directly in the code:
  
  console.log(packageStats.scan())
 ```
-Nearly all methods are configurable (See Reference).
+Nearly all methods are configurable (See [API](#api)).
 
 ## API
 
@@ -53,7 +53,7 @@ Nearly all methods are configurable (See Reference).
 
 #### scan({ options })
 
-Scans all entries and outputs their File Stats and other information (See Usage).
+Scans all entries and outputs their File Stats and other information (See [Usage](#usage)).
 
 returns the filetree as `Object` (See Sanner Output). Logging and Saving can optionally be enabled with the `log` and `save` arguments.
 
@@ -74,34 +74,27 @@ returns the filetree as `Object` (See Sanner Output). Logging and Saving can opt
 | `log`  | `bool`     | Enables logging of current scanning Information |
 
 
-#### Output:
-
-The Ouput is an `Object` with following structure
-
-
 --- 
 
 #### print(path, style)
 
-Prints the file tree as a formatted `String` out. The style can be changed with the `style` argument!
+Prints the file tree as a formatted `String` out.
 
 Returns the formatted output as `String` and logs it to the console.
 
 ```javascript
  packageStats.print(options)
  // or
- packageStats.print(style)
- // or
- packageStats.print(style, path);
+ packageStats.print(path);
 ```
 
 | Parameter | Type     | Description                       |
 | :-------- | :------- | :-------------------------------- |
-| `path`    | `string` |  (**Required**) path to File Tree Save (default is value of `SaveFilePath` Property) |
-| `style` | `number` | style of the output as number between 0 and 1 (default is `0`) | 
+| `path`    | `string` |  (**Required**) path to File Tree Save (default is value of `SaveFile Path`) |
 
 
 ---
+
 #### inspect({ options })
 
 Inspects an Element from the fileTree.
@@ -117,11 +110,10 @@ Inspects an Element from the fileTree.
 | Parameter | Type     | Description                       |
 | :-------- | :------- | :-------------------------------- |
 | `Id`      | `string` | (**Required**) Name of the File   |
-| `Path`    | `string` | (**Required**) path to File Tree Save (default is value of `SaveFilePath` Property) |
+| `Path`    | `string` | (**Required**) path to File Tree Save (default is value of `SaveFile Path`) |
 
 
 ---
-### Viewer
 
 #### openViewer({ options })
 
@@ -155,8 +147,6 @@ Closes the viewer
 
 ---
 
-### General
-
 #### cleanup()
 
 ```javascript
@@ -187,6 +177,28 @@ prints out information about the package. It output can be filtered with `select
  // or
  packageStats.packageInfo(selector)
 ```
+
+---
+
+## Scanner Output
+
+The Output is an `Object` with following structure
+- File Count (`fileCount`)
+- Folder Count (`folderCount`)
+- Scan Time (`time`)
+- Contents (`contents`)
+ - Name (`name`)
+ - Relative Path (`path`)
+ - Full Path (`fullpath`)
+ - Entry Type (`type`)
+ - isFolder (`isFolder`)
+ - isFile (`isFile`)
+ - Entry Size (`size`)
+ - Line Count (`lines`)
+ - Entry Depth (`depth`)
+ - Creation Time (`birthtime`)
+ - Last Modified Time (`lastModified`)
+
 ## Todo
 
 - Better saving Support
