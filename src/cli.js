@@ -21,7 +21,6 @@ var commands = {
     if (!isObject(options)) options = { path: options };
     options.save = options.save || save;
     options.log = !!(options.log || log) || false;
-    if (options.style === "-1") options.log = false;
     options.path = options.path || options.p || "./";
     options.exclude = options.exclude || "";
     options.withExtensions = !!options.withExtensions || true;
@@ -64,7 +63,7 @@ var commands = {
       throw new ValidationError("Invalid Selector to inspect");
     return handleInspect(options);
   },
-  view: function (options = 8080, ip) {
+  openViewer: function (options = 8080, ip) {
     args = { loose: false, path: saveFilePath };
     if (!isObject(options)) options = { port: options };
     options.ip = options.ip || ip || "127.0.0.1";
