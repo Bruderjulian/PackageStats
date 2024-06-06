@@ -4,7 +4,6 @@ const {
 } = require("fs");
 const {
   normalize,
-  countLines,
   isFile,
   isFolder,
   getFileExtension,
@@ -19,6 +18,15 @@ const {
 var depth = 0;
 var folderCount = 0;
 var fileCount = 0;
+
+function countLines(path) {
+  var text = readFileSync(path, "utf8");
+  var i = 0,
+    nLines = 0,
+    n = text.length;
+  for (; i < n; ++i) if (text[i] === "\n") ++nLines;
+  return ++nLines;
+}
 
 function scanFile(options) {
   fileCount++;

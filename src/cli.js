@@ -23,7 +23,7 @@ var commands = {
     options.log = !!(options.log || log) || false;
     options.path = options.path || options.p || "./";
     options.exclude = options.exclude || "";
-    options.withExtensions = !!options.withExtensions || true;
+    options.withExtensions = !!options.withExtensions || options.withExtensions || true;
 
     if (typeof options.path !== "string")
       throw new ValidationError("Invalid Path");
