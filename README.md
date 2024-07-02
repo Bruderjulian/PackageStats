@@ -32,9 +32,10 @@ or locally
 ```
 
 --- 
+
 ## Usage
 
-if installed globally, it can be called with the Cli:
+When installed globally, it can be called with a CLI:
 ```bash
  packageStats scan
 ```
@@ -44,7 +45,7 @@ When installed locally, it can be run with npm:
  npm run packageStats:scan
 ```
 
-Both can be imported and can be directly in the code:
+Both can be imported and can be used directly in the code:
 ```javascript
  const packageStats = require('packageStats');
  // or
@@ -67,36 +68,36 @@ Scans all entries and outputs their File Stats and other information.
 returns the filetree as `Object` (See [Scanner Output](#Scanner-Output)). Logging and Saving can optionally be enabled with the `log` and `save` arguments.
 
 ```javascript
- packageStats.scan(options)
- // or
- packageStats.scan(path)
+ packageStats.scan(path, save, log)
  // or
  packageStats.scan(path, save)
  // or
- packageStats.scan(path, save, log)
+ packageStats.scan(path)
+ // or
+ packageStats.scan(options)
 ```
 
 | options | Type      | Description                |
 | :------ | :-------  | :------------------------- |
-| `path`  | `string`  | The path to scan           |
-| `save`  | `bool`    | Enables saving the scan    |
-| `log`  | `bool`     | Enables logging of current scanning Information |
-| `exclude` | `string` | Excludes an Entry if the condition or pattern is matched ([Excluding](#Excluding)) |
-| `withExtensions`  | `bool` | Enables/Disables File Extensions |
+| `path`  | `String`  | The path to scan           |
+| `save`  | `boolean`    | Enables saving the scan    |
+| `log`  | `boolean`     | Enables logging of current scanning Information |
+| `exclude` | `String` | Excludes an Entry if the condition or pattern is matched ([Excluding](#Excluding)) |
+| `withExtensions`  | `boolean` | Enables/Disables File Extensions |
+| `Options` | `Object` | Can include any Options as Propetyabove |
 
 
 --- 
 
-#### print(path, style)
+#### print(path)
 
-Prints the file tree as a formatted `String` out.
+Prints the file tree and Scan Stats as a formatted `String` to the console.
 
-Returns the formatted output as `String` and logs it to the console.
 
 ```javascript
- packageStats.print(options)
- // or
  packageStats.print(path);
+ // or
+ packageStats.print(options)
 ```
 
 | Parameter | Type     | Description                       |
@@ -106,7 +107,7 @@ Returns the formatted output as `String` and logs it to the console.
 
 #### inspect(id, path)
 
-Inspects an Element from the fileTree.
+Inspects an Element from the File Tree.
 
 ```javascript
  packageStats.inspect(options)
@@ -119,7 +120,7 @@ Inspects an Element from the fileTree.
 | Parameter | Type     | Description                       |
 | :-------- | :------- | :-------------------------------- |
 | `id`      | `string` | (**Required**) Name of the File   |
-| `Path`    | `string` | (**Required**) path to File Tree Save (default is value of `SaveFile Path`) |
+| `path`    | `string` | (**Required**) path to File Tree Save (default is value of `SaveFile Path`) |
 
 
 #### openViewer(port, ip)
@@ -144,7 +145,7 @@ Opens the Viewer (See Viewer).
 
 #### closeViewer()
 
-Closes the viewer
+Closes the viewer gracefully
 
 ```javascript
  packageStats.closeViewer()
@@ -155,7 +156,7 @@ Closes the viewer
 ```javascript
  packageStats.cleanup()
 ```
-cleans up the saved scan 
+deletes the saved scan 
 
 #### help()
 
@@ -186,17 +187,17 @@ The Output is an `Object` with following structure:
 - Folder Count (`folderCount`)
 - Scan Time (`time`)
 - Contents/Array (`contents`)
- - Name (`name`)
- - Relative Path (`path`)
- - Full Path (`fullpath`)
- - Entry Type (`type`)
- - isFolder (`isFolder`)
- - isFile (`isFile`)
- - Entry Size (`size`)
- - Line Count (`lines`)
- - Entry Depth (`depth`)
- - Creation Time (`birthtime`)
- - Last Modified Time (`lastModified`)
+  - Name (`name`)
+  - Relative Path (`path`)
+  - Full Path (`fullpath`)
+  - Entry Type (`type`)
+  - isFolder (`isFolder`)
+  - isFile (`isFile`)
+  - Entry Size (`size`)
+  - Line Count (`lines`)
+  - Entry Depth (`depth`)
+  - Creation Time (`birthtime`)
+  - Last Modified Time (`lastModified`)
 
 ---
 
