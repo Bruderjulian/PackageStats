@@ -181,11 +181,11 @@ prints out information about the package. It output can be filtered with `select
 
 ## Scanner Output
 
-The Output is an `Object` with following structure
+The Output is an `Object` with following structure:
 - File Count (`fileCount`)
 - Folder Count (`folderCount`)
 - Scan Time (`time`)
-- Contents (`contents`)
+- Contents/Array (`contents`)
  - Name (`name`)
  - Relative Path (`path`)
  - Full Path (`fullpath`)
