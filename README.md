@@ -204,6 +204,7 @@ The Output is an `Object` with following structure:
 
 Displayes a Scan Save as File Tree. By clicking on an entry, the according information will be formatted and displayed.
 The Viewer can be opened with the `openViewer` function/command and gracefully closed with the `closeViewer` function/command or by pressing `STRG + C` in the terminal.
+
 ---
 
 ## Todo
