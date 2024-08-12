@@ -98,10 +98,10 @@ var commands = {
     if (options) console.log(packageVersion);
     return packageVersion;
   },
-  cleanup: function (options) {
-    if (isObject(options)) options = options.path || options.p || savePath;
-    if (typeof options !== "string") throw new ValidationError("Invalid Path!");
-    if (existFile(options)) unlinkSync(options);
+  cleanup: function (path) {
+    if (isObject(path)) path = path.path || path.p || savePath;
+    if (typeof path !== "string") throw new ValidationError("Invalid Path!");
+    if (existFile(path)) unlinkSync(path);
   },
   setSavePath: function (path) {
     if (isObject(path)) path = path.path || path.p;
@@ -114,7 +114,6 @@ var commands = {
     if (ext == "" || ext == ".") path += ".json";
     else if (ext !== ".json")
       throw new ValidationError("Invalid Save File Extension: " + ext);
-    if (!!options.log) console.log("Setting Save File Path to: ", path);
     savePath = path;
   },
 };
