@@ -130,7 +130,6 @@ async function handleScan(options) {
     logging: options.log,
     withExtensions: options.withExtensions,
   });
-  console.log(tree);
   if (
     !isObject(tree) ||
     !Array.isArray(tree.contents) ||
