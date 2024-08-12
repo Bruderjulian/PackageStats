@@ -1,4 +1,4 @@
-const packageInfo = require("../package.json");
+const packageVersion = require("../package.json").version;
 const { writeFile, unlinkSync, readFile } = require("fs");
 const {
   isObject,
@@ -15,7 +15,7 @@ const printTree = require("./printTree.js");
 const scanDir = require("./scan.js");
 const terminal = require("./terminal.js");
 
-var saveFilePath = "fileTree_saved.json";
+var savePath = "fileTree_saved.json";
 var commands = {
   scan: function (options = "./", save = false, log = true) {
     if (!isObject(options)) options = { path: options };
@@ -41,7 +41,7 @@ var commands = {
   },
   print: function (options) {
     if (!isObject(options)) options = { path: options };
-    options.path = options.path || options.p || saveFilePath;
+    options.path = options.path || options.p || savePath;
     if (typeof options.path !== "string" || options.path == "")
       throw new ValidationError("Invalid SaveFile Path");
     readFileTree(options.path)
@@ -55,7 +55,7 @@ var commands = {
   inspect: function (options = {}, path) {
     if (typeof options == "string") options = { select: options };
     else if (!isObject(options)) throw new ValidationError("Invalid Argument");
-    options.path = options.path || options.p || path || saveFilePath;
+    options.path = options.path || options.p || path || savePath;
     options.select = options.select || options.sel || "";
     if (typeof options.path !== "string")
       throw new ValidationError("Invalid SaveFile Path");
@@ -64,7 +64,7 @@ var commands = {
     return handleInspect(options);
   },
   openViewer: function (options = 8080, ip) {
-    args = { loose: false, path: saveFilePath };
+    args = { loose: false, path: savePath };
     if (!isObject(options)) options = { port: options };
     options.ip = options.ip || ip || "127.0.0.1";
     options.port = options.port || 8080;
@@ -80,56 +80,45 @@ var commands = {
         }
       }
     }
-    if (!existFile(saveFilePath)) throw new Error("Nothing scanned yet");
+    if (!existFile(savePath)) throw new Error("Nothing scanned yet");
     startViewer(options, args);
   },
   closeViewer: function () {
     closeViewer();
   },
-  help: function (options = {}) {
-    if (!isObject(options)) options = { log: options };
-    options.log = !!options.log || false;
-    if (options.log) console.log(terminal.helpMenu);
+  help: function (log = true) {
+    if (isObject(log)) log = !!log.log;
+    if (typeof log !== "boolean") throw new ValidationError("Invalid Options");
+    if (log) console.log(terminal.helpMenu);
     return terminal.helpMenu;
   },
-  packageInfo: function (options = {}) {
-    if (typeof options === "string") options = { select: options };
-    else if (!isObject(options)) throw new ValidationError("Invalid Argument");
-
-    options.select = options.select || options.sel || undefined;
-    if (typeof options.select !== "string" && options.select !== undefined)
-      throw new ValidationError("Invalid Selector: " + options.select);
-    if (options.select === "") options.select = undefined;
-
-    let info = options.select ? packageInfo[options.select] : packageInfo;
-    info = JSON.stringify(info, null, 2).replaceAll('"', "");
-    if (!!options.log) console.log(info);
-    return info;
+  version: function (options = true) {
+    if (isObject(options)) options = options.log || options.l;
+    if (options == undefined) options = true;
+    if (typeof options !== "boolean")
+      throw new ValidationError("Invalid Option");
+    if (options) console.log(packageVersion);
+    return packageVersion;
   },
   cleanup: function (options) {
-    if (typeof options === "string") options = { path: options };
-    if (!isObject(options)) throw new ValidationError("Invalid Options");
-
-    options.path = options.path || options.p || saveFilePath;
-    if (typeof options.path !== "string")
-      throw new ValidationError("Invalid Path!");
-
-    if (existFile(path)) unlinkSync(options.path);
+    if (isObject(options)) options = options.path || options.p || savePath;
+    if (typeof options !== "string") throw new ValidationError("Invalid Path!");
+    if (existFile(options)) unlinkSync(options);
   },
-  setSaveFilePath: function (options = {}) {
+  setSavePath: function (options = {}) {
     if (typeof options == "string") options = { path: options };
     if (!isObject(options)) throw new ValidationError("Invalid Options");
 
-    options.path = path.path || path.p || saveFilePath;
+    options.path = options.path || options.p || savePath;
     if (typeof options.path !== "string" || options.path === "")
       throw new ValidationError("Invalid SaveFile Path");
 
     let ext = getFileExtension(path);
     if (ext == "" || ext == ".") path += ".json";
     else if (ext !== ".json")
-      throw new ValidationError("Invalid SaveFile Extension: " + ext);
-    if (!!options.log) console.log("Setting SaveFile Path to:", path);
-    saveFilePath = path;
+      throw new ValidationError("Invalid Save File Extension: " + ext);
+    if (!!options.log) console.log("Setting Save File Path to: ", path);
+    savePath = path;
   },
 };
 
@@ -155,14 +144,9 @@ async function handleScan(options) {
   }
   if (options.log) handlePrint(options, tree);
   if (!options.save) return tree;
-  writeFile(
-    saveFilePath,
-    JSON.stringify(tree.contents[0]),
-    "utf8",
-    function (err) {
-      if (err) throw Error("Could not save File");
-    }
-  );
+  writeFile(savePath, JSON.stringify(tree.contents[0]), "utf8", function (err) {
+    if (err) throw Error("Could not save File");
+  });
   return tree;
 }
 
@@ -191,9 +175,9 @@ function handlePrint(options, tree) {
 
 function handleInspect(options) {
   var tree;
-  if (!existFile(saveFilePath)) tree = commands.scan(options);
+  if (!existFile(savePath)) tree = commands.scan(options);
   else {
-    tree = readFileTree(options.path || options.p || saveFilePath);
+    tree = readFileTree(options.path || options.p || savePath);
   }
   var displayEntry = import("./displayEntry.mjs");
   Promise.all([displayEntry, tree])
@@ -201,8 +185,8 @@ function handleInspect(options) {
       if (!data || !data[0].displayEntry || !data[1])
         throw new EvalError("Could not display Entry");
       let path = convertFilePath(options.select);
-      //let out = data[0].displayEntry({contents: [data[1]]}, path);
-      let out = data[0].displayEntry(data[1], path);
+      let out = data[0].displayEntry({ contents: [data[1]] }, path);
+      //let out = data[0].displayEntry(data[1], path);
       console.log(out);
       return data[1];
     })

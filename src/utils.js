@@ -108,12 +108,12 @@ var cmds = [
   "scan",
   "print",
   "inspect",
-  "view",
-  "closeView",
+  "openViewer",
+  "closeViewer",
   "help",
-  "packageInfo",
+  "version",
   "cleanup",
-  "setSaveFilePath",
+  "setSavePath",
 ];
 // based from https://stackoverflow.com/a/54098693
 function parseArgs() {
