@@ -166,16 +166,12 @@ prints out the help info
  packageStats.help()
 ```
 
-#### packageInfo(selector)
+#### version()
 
-prints out information about the package. It output can be filtered with `selector` parameter. Currently avaliable selectors are all keys within the `package.json`.
+prints out the version of package.
 
 ```javascript
- packageStats.packageInfo(options)
- // or
- packageStats.packageInfo()
- // or
- packageStats.packageInfo(selector)
+ packageStats.version()
 ```
 
 ---
