@@ -15,15 +15,6 @@ function normalize(path, name) {
   return path.replaceAll("\\", "/").replaceAll("//", "/");
 }
 
-function countLines(path) {
-  var text = readFileSync(path, "utf8");
-  var i = 0,
-    nLines = 0,
-    n = text.length;
-  for (; i < n; ++i) if (text[i] === "\n") ++nLines;
-  return ++nLines;
-}
-
 function existFile(path) {
   if (typeof path !== "string") return false;
   try {
@@ -71,7 +62,7 @@ function getFullPath(path) {
 }
 
 function getFileName(path, withExtension = true) {
-  let name = basename(path);
+  let name = normalize(basename(path));
   return withExtension ? name : name.replace(getFileExtension(name), "");
 }
 
@@ -94,7 +85,7 @@ function validateNum(num, min, max) {
   return typeof num === "number" && !isNaN(num) && num >= min && num <= max;
 }
 
-function convertFilePath(path = "", start) {
+function convertFilePath(path = "") {
   if (typeof path !== "string") return;
   path = normalize(path);
   var paths = path.split("/");
@@ -199,7 +190,7 @@ const mimeTypes = {
   ".woff2": "font/woff2",
 };
 
-const filePaths = {
+const filePathMap = {
   "/": "./viewer/viewer.html",
   "/file_tree.js": "./viewer/file_tree.js",
   "/doubleClick.js": "./viewer/doubleClick.js",
@@ -219,7 +210,7 @@ function startViewer(options, args) {
   if (server) closeViewer();
   server = createServer(function (req, response) {
     var path = normalize(req.url.replace(/[^a-z0-9/.]/gi, "_"));
-    if (filePaths.hasOwnProperty(path)) path = filePaths[path];
+    if (filePathMap.hasOwnProperty(path)) path = filePathMap[path];
     else if (path === "/" + getFileName(args.path)) {
       path = "./" + getFileName(args.path);
     } else if (path == "/args.data") {
@@ -289,7 +280,6 @@ class ValidationError extends Error {
 module.exports = {
   isObject,
   normalize,
-  countLines,
   isFile,
   isFolder,
   isTextFile,
