@@ -3,17 +3,17 @@ const { writeFile, unlinkSync, readFile } = require("fs");
 const {
   isObject,
   existFile,
-  convertFilePath,
-  startViewer,
-  parseFileSpecificator,
-  closeViewer,
-  validateIpAndPort,
-  ValidationError,
   getFileExtension,
+  convertFilePath,
+  parseFileSpecificator,
+  validateIpAndPort,
+  startViewer,
+  closeViewer,
+  ValidationError,
+  helpMenu,
 } = require("./utils.js");
 const printTree = require("./printTree.js");
 const scanDir = require("./scan.js");
-const terminal = require("./terminal.js");
 
 var savePath = "fileTree_saved.json";
 var commands = {
@@ -33,7 +33,7 @@ var commands = {
       throw new ValidationError("Invalid Arguments");
     return new Promise(function (resolve, reject) {
       try {
-        resolve(handleScan(options).catch(reject));
+        resolve(handleScan(options));
       } catch (err) {
         reject(err);
       }
@@ -86,11 +86,9 @@ var commands = {
   closeViewer: function () {
     closeViewer();
   },
-  help: function (log = true) {
-    if (isObject(log)) log = !!log.log;
-    if (typeof log !== "boolean") throw new ValidationError("Invalid Options");
-    if (log) console.log(terminal.helpMenu);
-    return terminal.helpMenu;
+  help: function () {
+    console.log(helpMenu);
+    return helpMenu;
   },
   version: function (options = true) {
     if (isObject(options)) options = options.log || options.l;
@@ -105,12 +103,11 @@ var commands = {
     if (typeof options !== "string") throw new ValidationError("Invalid Path!");
     if (existFile(options)) unlinkSync(options);
   },
-  setSavePath: function (options = {}) {
-    if (typeof options == "string") options = { path: options };
-    if (!isObject(options)) throw new ValidationError("Invalid Options");
-
-    options.path = options.path || options.p || savePath;
-    if (typeof options.path !== "string" || options.path === "")
+  setSavePath: function (path) {
+    if (isObject(path)) path = path.path || path.p;
+    if (typeof path !== "string") throw new ValidationError("Invalid Options");
+    path = path || savePath;
+    if (typeof path !== "string" || path === "")
       throw new ValidationError("Invalid SaveFile Path");
 
     let ext = getFileExtension(path);
@@ -134,6 +131,7 @@ async function handleScan(options) {
     logging: options.log,
     withExtensions: options.withExtensions,
   });
+  console.log(tree);
   if (
     !isObject(tree) ||
     !Array.isArray(tree.contents) ||
