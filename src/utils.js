@@ -94,37 +94,6 @@ function convertFilePath(path = "") {
   return "." + paths.join(".");
 }
 
-var cmds = [
-  "scan",
-  "print",
-  "inspect",
-  "openViewer",
-  "closeViewer",
-  "help",
-  "version",
-  "cleanup",
-  "setSavePath",
-];
-// based from https://stackoverflow.com/a/54098693
-function parseArgs() {
-  var args = {},
-    argv = process.argv.slice(2);
-  for (var i = 0; i < argv.length; i++) {
-    let cmd = argv[i].replaceAll("-", "");
-    if (cmds.includes(cmd) && !args["command"]) {
-      //command
-      args["command"] = cmd;
-    } else if (argv[i].slice(0, 2) === "--") {
-      // long arg
-      let longArg = argv[i].split("=");
-      args[longArg[0].slice(2)] = longArg.length > 1 ? longArg[1] : true;
-    } else if (argv[i][0] === "-") {
-      // flags
-      args[argv[i].slice(1).replace("!", "")] = argv[i].indexOf("!") == -1;
-    } else throw new ValidationError("Invalid Arguments");
-  }
-  return args;
-}
 
 function processString(string) {
   let strict = string[0] === "%" || string[1] === "%";
@@ -336,7 +305,6 @@ module.exports = {
   startViewer,
   validateIpAndPort,
   closeViewer,
-  parseArgs,
   ValidationError,
   helpMenu,
 };
