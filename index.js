@@ -11,7 +11,6 @@ class ArgumentError extends Error {
 // if file gets called from cli or gets required from somewhere
 if (process.argv[1].endsWith("index.js")) {
   var args = parseArgs();
-  console.log(args);
   var command = commands[args.command];
   if (command) command(args);
   else {

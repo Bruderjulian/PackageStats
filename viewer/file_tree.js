@@ -1,5 +1,5 @@
 import { doubleClick } from "./doubleClick.js";
-import { displayEntry } from "../src/displayEntry.mjs";
+import * as displayEntryTemp from "../src/displayEntry.js";
 
 var inputTree;
 var entry_info = document.getElementById("entry_info");
@@ -10,7 +10,7 @@ var doubleClickHandler = doubleClick(
     if (!args.loose) var path = getPath(e.target);
     else var path = "." + e.target.id || e.target.innerHTML;
     if (typeof path !== "string") throw Error("Could generate Object Path");
-    entry_info.innerHTML = displayEntry(inputTree, path);
+    entry_info.innerHTML = window.displayEntry(inputTree, path);
   },
   function (e) {
     if (e.target.className == "folder_name") {
@@ -35,9 +35,9 @@ NodeList.prototype.has = function (selector) {
   return Array.from(this).filter((e) => e.querySelector(selector));
 };
 
-export function parseFileTree(elementId) {
+export function parseFileTree() {
   var liElementsInideUl = document
-    .getElementById(elementId)
+    .getElementById("file_tree")
     .querySelectorAll("li");
   liElementsInideUl.has("ul").forEach((li) => {
     li.classList.add("folder_root");

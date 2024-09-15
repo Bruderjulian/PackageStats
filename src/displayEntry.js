@@ -1,7 +1,16 @@
 var PathCache = {};
 var EntryCache = {};
 
-export function displayEntry(entry, path) {
+if (
+  typeof module == "object" &&
+  typeof module.exports !== "undefined"
+) {
+  module.exports = { displayEntry: displayEntry };
+} else if (isObject(window)) {
+  window.displayEntry = displayEntry;
+}
+
+function displayEntry(entry, path = "") {
   if (arguments.length >= 2) {
     if (typeof path !== "string")
       throw new ValidationError("Invalid Object path");
@@ -18,34 +27,6 @@ export function displayEntry(entry, path) {
     EntryCache[entry.fullPath] = out;
   }
   return out;
-}
-
-export function format(entry) {
-  if (!isObject(entry)) throw new ValidationError("Invalid Entry to display");
-  var displayObj = {};
-  for (const i of Object.keys(entry)) displayObj[i] = entry[i];
-  if (entry.contents) displayObj.contents = entry.contents.map((a) => a.name);
-  displayObj.size = convertSize(entry.size);
-  var str = JSON.stringify(displayObj, null, 4)
-    .replaceAll('"', "")
-    .replaceAll(",", "")
-    .replaceAll("    ", "  ");
-  str = str.substring(2, str.length - 1);
-  return str;
-}
-
-var SizeNames = ["B", "KB", "MB", "GB", "TB"];
-function convertSize(size) {
-  if (typeof size !== "number" || isNaN(size)) return size;
-  var i = Math.floor(Math.max(Math.log10(size), 0) / 3);
-  var num = roundTo(size / 1000 ** i, 1);
-  return num + " " + (SizeNames[i] || "10^" + i + " B");
-}
-
-function roundTo(num, percision = 3) {
-  if (typeof num !== "number" || typeof percision !== "number") return num;
-  let exponent = 10 ** percision;
-  return Math.round(num * exponent) / exponent;
 }
 
 function findEntry(tree = {}, path = "") {
@@ -106,6 +87,34 @@ function isEqual(str1, str2, checkloose = false) {
   str2 = str2.toString().toLowerCase();
   if (!checkloose) return str1 == str2;
   else return str1.includes(str2) || str2.includes(str1);
+}
+
+function format(entry) {
+  if (!isObject(entry)) throw new ValidationError("Invalid Entry to display");
+  var displayObj = {};
+  for (const i of Object.keys(entry)) displayObj[i] = entry[i];
+  if (entry.contents) displayObj.contents = entry.contents.map((a) => a.name);
+  displayObj.size = convertSize(entry.size);
+  var str = JSON.stringify(displayObj, null, 4)
+    .replaceAll('"', "")
+    .replaceAll(",", "")
+    .replaceAll("    ", "  ");
+  str = str.substring(2, str.length - 1);
+  return str;
+}
+
+var SizeNames = ["B", "KB", "MB", "GB", "TB"];
+function convertSize(size) {
+  if (typeof size !== "number" || isNaN(size)) return size;
+  var i = Math.floor(Math.max(Math.log10(size), 0) / 3);
+  var num = roundTo(size / 1000 ** i, 1);
+  return num + " " + (SizeNames[i] || "10^" + i + " B");
+}
+
+function roundTo(num, percision = 3) {
+  if (typeof num !== "number" || typeof percision !== "number") return num;
+  let exponent = 10 ** percision;
+  return Math.round(num * exponent) / exponent;
 }
 
 class ValidationError extends Error {

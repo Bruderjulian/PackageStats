@@ -162,7 +162,7 @@ const filePathMap = {
   "/": "./viewer/viewer.html",
   "/file_tree.js": "./viewer/file_tree.js",
   "/doubleClick.js": "./viewer/doubleClick.js",
-  "/src/displayEntry.mjs": "./src/displayEntry.mjs",
+  "/src/displayEntry.js": "./src/displayEntry.js",
   "/assets/style.css": "./viewer/assets/style.css",
   "/assets/file_tree.css": "./viewer/assets/file_tree.css",
   "/assets/file.svg": "./viewer/assets/file.svg",

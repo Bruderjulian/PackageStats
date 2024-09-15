@@ -55,12 +55,13 @@ async function scanFolder() {
   folderCount++;
   if (options.logging == true) console.log("Scanning Folder:", path);
   var stats = statSync(path);
-  var children = await loopFolder(options);
+  var currentPath = path;
+  var children = await loopFolder();
   return {
     lines: children.reduce((n, { lines }) => n + lines, 0),
-    name: getFolderName(path),
-    path: normalize(path),
-    fullPath: getFullPath(path),
+    name: getFolderName(currentPath),
+    path: normalize(currentPath),
+    fullPath: getFullPath(currentPath),
     isFile: false,
     isFolder: true,
     type: "folder",
@@ -79,8 +80,8 @@ async function loopFolder() {
     path = normalize(dirent.parentPath, dirent.name);
     if (options.isExcluded(path)) continue;
     if (isFile(path)) {
-      files.push(scanFile(options));
-    } else files.push(await scanFolder(options));
+      files.push(scanFile());
+    } else files.push(await scanFolder());
   }
   depth--;
   return files;
@@ -94,8 +95,8 @@ async function scanDir(opts) {
   var contents = [];
   if (!options.isExcluded(path)) {
     if (isFile(path)) {
-      contents.push(scanFile(options));
-    } else if (isFolder(path)) contents.push(await scanFolder(options));
+      contents.push(scanFile());
+    } else if (isFolder(path)) contents.push(await scanFolder());
     else throw EvalError("Could not scan path");
   }
   return { contents, fileCount, folderCount, time: Date.now() - time };

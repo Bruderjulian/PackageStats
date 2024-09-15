@@ -14,13 +14,14 @@ const {
 } = require("./utils.js");
 const printTree = require("./printTree.js");
 const scanDir = require("./scan.js");
+const displayEntry = require("./displayEntry.js");
 
 var savePath = "fileTree_saved.json";
 var commands = {
   scan: function (options = "./", save = false, log = true) {
     if (!isObject(options)) options = { path: options };
-    options.save = options.save || save;
-    options.log = !!(options.log || log) || false;
+    options.save = !!(options.save || save || options.s) || save;
+    options.log = !!(options.log || log || options.l) || false;
     options.path = options.path || options.p || "./";
     options.exclude = options.exclude || "";
     options.withExtensions = !!options.withExtensions || options.withExtensions || true;
@@ -141,7 +142,7 @@ async function handleScan(options) {
   if (options.log) handlePrint(options, tree);
   if (!options.save) return tree;
   writeFile(savePath, JSON.stringify(tree.contents[0]), "utf8", function (err) {
-    if (err) throw Error("Could not save File");
+    if (err) throw new Error("Could not save File");
   });
   return tree;
 }
@@ -175,14 +176,13 @@ function handleInspect(options) {
   else {
     tree = readFileTree(options.path || options.p || savePath);
   }
-  var displayEntry = import("./displayEntry.mjs");
+  var displayEntry = import("./displayEntry.js");
   Promise.all([displayEntry, tree])
     .then(function (data) {
       if (!data || !data[0].displayEntry || !data[1])
         throw new EvalError("Could not display Entry");
       let path = convertFilePath(options.select);
       let out = data[0].displayEntry({ contents: [data[1]] }, path);
-      //let out = data[0].displayEntry(data[1], path);
       console.log(out);
       return data[1];
     })

@@ -30,6 +30,8 @@
       </div>
     </div>
 
+    <script type="module" src="../src/displayEntry.js"></script>
+    <script type="module" src="./doubleClick.js"></script>
     <script type="module">
       import {
         parseFileTree,
@@ -40,7 +42,7 @@
         fetchServerArgs()
           .then(() => {
             generateFileTree();
-            parseFileTree("file_tree");
+            parseFileTree();
           })
           .catch((err) => {
             throw Error("Could not parse FileTree");
