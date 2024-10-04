@@ -1,37 +1,50 @@
 const packageVersion = require("../package.json").version;
-const { writeFile, unlinkSync, readFile } = require("fs");
 const {
   isObject,
   existFile,
-  getFileExtension,
   convertFilePath,
   parseFileSpecificator,
-  validateIpAndPort,
-  startViewer,
-  closeViewer,
   ValidationError,
   helpMenu,
+  throwOptionError,
+  setDefault,
+  parseSavePath,
 } = require("./utils.js");
 const printTree = require("./printTree.js");
 const scanDir = require("./scan.js");
-const displayEntry = require("./displayEntry.js");
+const SaveFileHandler = require("./SaveFileHandler.js");
+const { startViewer, closeViewer } = require("./viewer.js");
 
-var savePath = "fileTree_saved.json";
+var config = {
+  savefilePath: "",
+  encryption: false,
+  compression: true,
+  saving: true,
+  logging: true,
+  ip: "127.0.0.1",
+  port: 8080,
+  withExtensions: true,
+};
+
 var commands = {
-  scan: function (options = "./", save = false, log = true) {
+  scan: function (options) {
     if (!isObject(options)) options = { path: options };
-    options.save = !!(options.save || save || options.s) || save;
-    options.log = !!(options.log || log || options.l) || false;
-    options.path = options.path || options.p || "./";
-    options.exclude = options.exclude || "";
-    options.withExtensions = !!options.withExtensions || options.withExtensions || true;
-
+    options.path = setDefault("%", options.path, options.p);
+    options.exclude = setDefault("", options.exclude);
+    options.saving = setDefault(config.saving, options.saving, options.s);
+    options.logging = setDefault(config.logging, options.logging, options.l);
+    options.withExtensions = setDefault(
+      config.withExtensions,
+      options.withExtensions
+    );
     if (typeof options.path !== "string")
-      throw new ValidationError("Invalid Path");
+      throw new ValidationError("Invalid Path: " + options.path);
     if (typeof options.exclude !== "string")
       throw new ValidationError("Invalid Exclude String");
-    if (typeof options.save !== "boolean" || typeof options.log !== "boolean")
-      throw new ValidationError("Invalid Arguments");
+    if (typeof options.saving !== "boolean") throwOptionError("saving");
+    if (typeof options.logging !== "boolean") throwOptionError("logging");
+    if (typeof options.withExtensions !== "boolean")
+      throwOptionError("extensions");
     return new Promise(function (resolve, reject) {
       try {
         resolve(handleScan(options));
@@ -41,47 +54,33 @@ var commands = {
     });
   },
   print: function (options) {
-    if (!isObject(options)) options = { path: options };
-    options.path = options.path || options.p || savePath;
-    if (typeof options.path !== "string" || options.path == "")
-      throw new ValidationError("Invalid SaveFile Path");
-    readFileTree(options.path)
-      .then(function (data) {
-        handlePrint(options, data);
-      })
-      .catch(function () {
-        throw EvalError("Could not print FileTree on path: " + options.path);
-      });
+    if (isObject(options)) options = setDefault("%", options.path, options.p);
+    if (typeof options !== "string")
+      throw new ValidationError("Invalid Save Name: " + options);
+    SaveFileHandler.load(options).then(function (data) {
+      handlePrint(data);
+    });
   },
-  inspect: function (options = {}, path) {
-    if (typeof options == "string") options = { select: options };
-    else if (!isObject(options)) throw new ValidationError("Invalid Argument");
-    options.path = options.path || options.p || path || savePath;
-    options.select = options.select || options.sel || "";
+  inspect: function (options = {}) {
+    if (!isObject(options)) options = { select: options };
+    options.path = setDefault("%", options.path, options.p);
+    options.select = setDefault("", options.select, options.sel);
     if (typeof options.path !== "string")
-      throw new ValidationError("Invalid SaveFile Path");
+      throw new ValidationError("Invalid Save Name: " + options.path);
     if (typeof options.select !== "string")
       throw new ValidationError("Invalid Selector to inspect");
     return handleInspect(options);
   },
-  openViewer: function (options = 8080, ip) {
-    args = { loose: false, path: savePath };
-    if (!isObject(options)) options = { port: options };
-    options.ip = options.ip || ip || "127.0.0.1";
-    options.port = options.port || 8080;
-    if (!validateIpAndPort(options.ip, options.port)) {
-      throw new ValidationError(
-        "Invalid Viewer Address: " + options.ip + ":" + options.port
-      );
+  openViewer: function (options) {
+    options.ip = setDefault(config.ip, options.ip);
+    options.port = setDefault(config.port, options.port);
+    options.path = setDefault("%", options.path, options.p);
+    if (!validateIP(options.ip)) throwOptionError("IP");
+    if (!validatePort(options.port)) throwOptionError("port");
+    if (typeof options.path !== "string" || options.path.length == 0) {
+      throw new ValidationError("Invalid Save Name: " + options.path);
     }
-    if (isObject(options.args)) {
-      for (const i of Object.keys(options.args)) {
-        if (typeof options.args[i] === typeof args[i] || !args[i]) {
-          args[i] = options.args[i];
-        }
-      }
-    }
-    if (!existFile(savePath)) throw new Error("Nothing scanned yet");
+    args = { loose: false, path: options.path };
     startViewer(options, args);
   },
   closeViewer: function () {
@@ -92,30 +91,45 @@ var commands = {
     return helpMenu;
   },
   version: function (options = true) {
-    if (isObject(options)) options = options.log || options.l;
-    if (options == undefined) options = true;
-    if (typeof options !== "boolean")
-      throw new ValidationError("Invalid Option");
+    if (isObject(options))
+      options = setDefault(config.logging, options.logging, options.l);
+    if (typeof options !== "boolean") throwOptionError("logging");
     if (options) console.log(packageVersion);
     return packageVersion;
   },
-  cleanup: function (path) {
-    if (isObject(path)) path = path.path || path.p || savePath;
-    if (typeof path !== "string") throw new ValidationError("Invalid Path!");
-    if (existFile(path)) unlinkSync(path);
+  manageSaves: function (options) {
+    options.path = setDefault("", options.path, options.p);
+    options.wipe = setDefault(false, options.wipe);
+    if (typeof options.path !== "string" || options.length == 0)
+      throw new ValidationError("Invalid Save Name: " + options.path);
+    if (typeof options.wipe !== "boolean") throwOptionError("wipe");
   },
-  setSavePath: function (path) {
-    if (isObject(path)) path = path.path || path.p;
-    if (typeof path !== "string") throw new ValidationError("Invalid Options");
-    path = path || savePath;
-    if (typeof path !== "string" || path === "")
-      throw new ValidationError("Invalid SaveFile Path");
+  remove: function (options) {
+    SaveFileHandler.remove(options.path);
+  },
+  delete: function () {
+    SaveFileHandler.delete();
+  },
+  configure: function (options) {
+    if (!isObject(options)) throw new ValidationError("Invalid Argument Type");
+    for (const key of Object.keys(config)) {
+      if (typeof config[key] !== "boolean" || options[key] == undefined)
+        continue;
+      if (typeof options[key] !== "boolean") throwOptionError(key);
+      config[key] = !!options[key];
+    }
 
-    let ext = getFileExtension(path);
-    if (ext == "" || ext == ".") path += ".json";
-    else if (ext !== ".json")
-      throw new ValidationError("Invalid Save File Extension: " + ext);
-    savePath = path;
+    if (validateIP(options.ip)) {
+      config.ip = options.ip;
+    } else if (options.ip) throwOptionError("IP");
+    if (validatePort(options.port)) {
+      config.port = options.port;
+    } else if (options.port) throwOptionError("port");
+
+    if (options.savefilePath) {
+      config.savefilePath = parseSavePath(options.savefilePath);
+    }
+    SaveFileHandler.configure(config, packageVersion);
   },
 };
 
@@ -128,7 +142,7 @@ async function handleScan(options) {
       function () {
         return false;
       },
-    logging: options.log,
+    logging: options.logging,
     withExtensions: options.withExtensions,
   });
   if (
@@ -139,15 +153,12 @@ async function handleScan(options) {
   ) {
     throw new ValidationError("Could not scan Folder Tree correctly");
   }
-  if (options.log) handlePrint(options, tree);
-  if (!options.save) return tree;
-  writeFile(savePath, JSON.stringify(tree.contents[0]), "utf8", function (err) {
-    if (err) throw new Error("Could not save File");
-  });
+  if (options.logging) handlePrint(tree);
+  if (options.saving) SaveFileHandler.save(tree.contents[0]);
   return tree;
 }
 
-function handlePrint(options, tree) {
+function handlePrint(tree) {
   if (!tree.hasOwnProperty("folderCount")) {
     console.log(printTree(tree));
     return;
@@ -172,9 +183,9 @@ function handlePrint(options, tree) {
 
 function handleInspect(options) {
   var tree;
-  if (!existFile(savePath)) tree = commands.scan(options);
+  if (!existFile(config.savefilePath)) tree = commands.scan(options);
   else {
-    tree = readFileTree(options.path || options.p || savePath);
+    tree = readFileTree(options.path || options.p);
   }
   var displayEntry = import("./displayEntry.js");
   Promise.all([displayEntry, tree])
@@ -189,27 +200,6 @@ function handleInspect(options) {
     .catch(function () {
       throw EvalError("Could not inspect entry");
     });
-}
-
-function readFileTree(path) {
-  return new Promise(function (resolve, reject) {
-    readFile(path, "utf8", function (err, data) {
-      try {
-        data = JSON.parse(data);
-        if (
-          err ||
-          !isObject(data) ||
-          !Array.isArray(data.contents) ||
-          !isObject(data.contents[0])
-        ) {
-          throw new Error();
-        }
-        resolve(data);
-      } catch (err) {
-        reject("Could not parse FileTree");
-      }
-    });
-  });
 }
 
 module.exports = commands;
