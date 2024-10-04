@@ -1,5 +1,6 @@
 #! /usr/bin/env node
 const commands = require("./src/cli.js");
+const SaveFiles = require("./src/SaveFileHandler.js");
 
 class ArgumentError extends Error {
   constructor(message = "") {
@@ -9,6 +10,7 @@ class ArgumentError extends Error {
 
 // Uses the argv Object to detect
 // if file gets called from cli or gets required from somewhere
+SaveFiles.init();
 if (process.argv[1].endsWith("index.js")) {
   var args = parseArgs();
   var command = commands[args.command];
