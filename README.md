@@ -1,8 +1,9 @@
-
 # PackageStats
 
 A Package (or generally speaking, a Project) Scanner and Viewer! It scans all entries and outputs their File Stats and other information.
 (See [Usage](#usage) & [Scanner Output](#Scanner-Output))
+
+**Currently are major Changes and rewrites happening for Multi Save Support! Because of that in the most cases the functions will only work partial!**
 
 ## Contents
 
@@ -27,32 +28,37 @@ Install it with npm globally:
 ```
 
 or locally
+
 ```bash
-  npm install packageStats 
+  npm install packageStats
 ```
 
---- 
+---
 
 ## Usage
 
 When installed globally, it can be called with a CLI:
+
 ```bash
  packageStats scan
 ```
 
 When installed locally, it can be run with npm:
+
 ```bash
  npm run packageStats:scan
 ```
 
 Both can be imported and can be used directly in the code:
+
 ```javascript
- const packageStats = require('packageStats');
- // or
- import packageStats from 'packageStats';
- 
- console.log(packageStats.scan())
+const packageStats = require("packageStats");
+// or
+import packageStats from "packageStats";
+
+console.log(packageStats.scan());
 ```
+
 Nearly all methods are configurable (See [API](#api)).
 
 ---
@@ -68,102 +74,99 @@ Scans all entries and outputs their File Stats and other information.
 returns the filetree as `Object` (See [Scanner Output](#Scanner-Output)). Logging and Saving can optionally be enabled with the `log` and `save` arguments.
 
 ```javascript
- packageStats.scan(path, save, log)
- // or
- packageStats.scan(path, save)
- // or
- packageStats.scan(path)
- // or
- packageStats.scan(options)
+packageStats.scan(path, save, log);
+// or
+packageStats.scan(path, save);
+// or
+packageStats.scan(path);
+// or
+packageStats.scan(options);
 ```
 
-| options | Type      | Description                |
-| :------ | :-------  | :------------------------- |
-| `path`  | `String`  | The path to scan           |
-| `save`  | `boolean`    | Enables saving the scan    |
-| `log`  | `boolean`     | Enables logging of current scanning Information |
-| `exclude` | `String` | Excludes an Entry if the condition or pattern is matched ([Excluding](#Excluding)) |
-| `withExtensions`  | `boolean` | Enables/Disables File Extensions |
-| `Options` | `Object` | Can include any Options as Propetyabove |
+| options          | Type      | Description                                                                        |
+| :--------------- | :-------- | :--------------------------------------------------------------------------------- |
+| `path`           | `String`  | The path to scan                                                                   |
+| `save`           | `boolean` | Enables saving the scan                                                            |
+| `log`            | `boolean` | Enables logging of current scanning Information                                    |
+| `exclude`        | `String`  | Excludes an Entry if the condition or pattern is matched ([Excluding](#Excluding)) |
+| `withExtensions` | `boolean` | Enables/Disables File Extensions                                                   |
+| `Options`        | `Object`  | Can include any Options as Propetyabove                                            |
 
-
---- 
+---
 
 #### print(path)
 
 Prints the file tree and Scan Stats as a formatted `String` to the console.
 
-
 ```javascript
- packageStats.print(path);
- // or
- packageStats.print(options)
+packageStats.print(path);
+// or
+packageStats.print(options);
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `path`    | `string` |  (**Required**) path to File Tree Save (default is value of `SaveFile Path`) |
-
+| Parameter | Type     | Description                                                                 |
+| :-------- | :------- | :-------------------------------------------------------------------------- |
+| `path`    | `string` | (**Required**) path to File Tree Save (default is value of `SaveFile Path`) |
 
 #### inspect(id, path)
 
 Inspects an Element from the File Tree.
 
 ```javascript
- packageStats.inspect(options)
- // or
- packageStats.inspect(id)
- // or
- packageStats.inspect(id, path)
+packageStats.inspect(options);
+// or
+packageStats.inspect(id);
+// or
+packageStats.inspect(id, path);
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `id`      | `string` | (**Required**) Name of the File   |
+| Parameter | Type     | Description                                                                 |
+| :-------- | :------- | :-------------------------------------------------------------------------- |
+| `id`      | `string` | (**Required**) Name of the File                                             |
 | `path`    | `string` | (**Required**) path to File Tree Save (default is value of `SaveFile Path`) |
-
 
 #### openViewer(port, ip)
 
 Opens the Viewer (See Viewer).
 
 ```javascript
- packageStats.openViewer(options)
- // or
- packageStats.openViewer()
- // or
- packageStats.openViewer(port)
- // or
- packageStats.openViewer(port, ip)
+packageStats.openViewer(options);
+// or
+packageStats.openViewer();
+// or
+packageStats.openViewer(port);
+// or
+packageStats.openViewer(port, ip);
 ```
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
+
+| Parameter | Type     | Description                                    |
+| :-------- | :------- | :--------------------------------------------- |
 | `port`    | `string` | port to open the viewer (default is "8080")    |
 | `ip`      | `string` | ip to open the viewer (default is "127.0.0.1") |
-| `args`    | `string` | args for the viewer               |
-
+| `args`    | `string` | args for the viewer                            |
 
 #### closeViewer()
 
 Closes the viewer gracefully
 
 ```javascript
- packageStats.closeViewer()
+packageStats.closeViewer();
 ```
 
 #### cleanup()
 
 ```javascript
- packageStats.cleanup()
+packageStats.cleanup();
 ```
-deletes the saved scan 
+
+deletes the saved scan
 
 #### help()
 
 prints out the help info
 
 ```javascript
- packageStats.help()
+packageStats.help();
 ```
 
 #### version()
@@ -171,7 +174,7 @@ prints out the help info
 prints out the version of package.
 
 ```javascript
- packageStats.version()
+packageStats.version();
 ```
 
 ---
@@ -179,6 +182,7 @@ prints out the version of package.
 ## Scanner Output
 
 The Output is an `Object` with following structure:
+
 - File Count (`fileCount`)
 - Folder Count (`folderCount`)
 - Scan Time (`time`)
@@ -223,4 +227,3 @@ If you find a bug or want to propose a feature, please open an issuse or contact
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
-

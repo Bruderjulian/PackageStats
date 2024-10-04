@@ -5,6 +5,7 @@ const {
   existFile,
   FileError,
   ValidationError,
+  setDefault,
 } = require("./utils.js");
 
 const compressor = require("hjson-compressor");
@@ -84,15 +85,15 @@ class SaveFiles {
 
   static configure(options = {}, version = this.config.version) {
     if (!isObject(options)) throw new TypeError("Invalid Options Type");
-    this.config.path = options.savefilePath || this.config.path;
-    this.config.compression =
-      typeof options.compression !== undefined
-        ? options.compression
-        : this.config.compression;
-    this.config.encryption =
-      typeof options.encryption !== undefined
-        ? options.encryption
-        : this.config.encryption;
+    this.config.path = setDefault(this.config.path, options.savefilePath);
+    this.config.compression = setDefault(
+      this.config.compression,
+      options.compression
+    );
+    this.config.encryption = setDefault(
+      this.config.encryption,
+      options.encryption
+    );
     this.config.version = version;
     writeFile(
       this.config_path,

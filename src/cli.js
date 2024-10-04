@@ -13,7 +13,12 @@ const {
 const printTree = require("./printTree.js");
 const scanDir = require("./scan.js");
 const SaveFileHandler = require("./SaveFileHandler.js");
-const { startViewer, closeViewer } = require("./viewer.js");
+const {
+  startViewer,
+  closeViewer,
+  validateIP,
+  validatePort,
+} = require("./viewer.js");
 
 var config = {
   savefilePath: "",
@@ -29,7 +34,7 @@ var config = {
 var commands = {
   scan: function (options) {
     if (!isObject(options)) options = { path: options };
-    options.path = setDefault("%", options.path, options.p);
+    options.path = setDefault("./", options.path, options.p);
     options.exclude = setDefault("", options.exclude);
     options.saving = setDefault(config.saving, options.saving, options.s);
     options.logging = setDefault(config.logging, options.logging, options.l);
@@ -154,7 +159,7 @@ async function handleScan(options) {
     throw new ValidationError("Could not scan Folder Tree correctly");
   }
   if (options.logging) handlePrint(tree);
-  if (options.saving) SaveFileHandler.save(tree.contents[0]);
+  if (options.saving) SaveFileHandler.save(tree.contents[0], options.name);
   return tree;
 }
 

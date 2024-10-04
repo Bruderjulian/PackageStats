@@ -119,7 +119,7 @@ function validateNum(num, min, max) {
   return typeof num === "number" && !isNaN(num) && num >= min && num <= max;
 }
 
-modele.exports = {
+module.exports = {
   validateIP,
   validatePort,
   startViewer,

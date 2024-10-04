@@ -168,7 +168,7 @@ function throwOptionError(key) {
 
 function setDefault(defaultValue, ...args) {
   for (let i = 0; i < args.length; i++) {
-    if (typeof args[i] !== undefined) return args[i];
+    if (typeof args[i] !== "undefined") return args[i];
   }
   return defaultValue;
 }
