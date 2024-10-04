@@ -18,7 +18,7 @@ const {
 
 class SaveFiles {
   static config_path = "saves/config.json";
-  static config = {
+  static #config = {
     path: "saves/saves.json",
     version: 1.0,
     amount: 0,
@@ -31,18 +31,18 @@ class SaveFiles {
   static save(tree, name = "") {
     if (!isObject(tree)) return;
     if (typeof name !== "string") throw new TypeError("Invalid Name Type");
-    if (name.length == 0) name = "unnamed" + this.config.amount;
-    this.config.last = name;
+    if (name.length == 0) name = "unnamed" + this.#config.amount;
+    this.#config.last = name;
 
     var str = this.#applyOptions(tree);
-    this.config.amount++;
+    this.#config.amount++;
 
     this.#read().then(
       function (data) {
         if (typeof data !== "string") return;
         data = JSON.parse(data);
         data[name] = str;
-        writeFile(this.config.path, JSON.stringify(data), "utf-8");
+        writeFile(this.#config.path, JSON.stringify(data), "utf-8");
       }.bind(this)
     );
     this.configure();
@@ -57,7 +57,7 @@ class SaveFiles {
   }
 
   static async exists(name) {
-    if (!existFile(this.config.path)) return false;
+    if (!existFile(this.#config.path)) return false;
     if (!name || name == "") return true;
     try {
       return JSON.parse(await this.#read()).hasOwnProperty(name);
@@ -74,37 +74,44 @@ class SaveFiles {
         if (typeof data !== "string" || data.indexOf(name) == -1) return;
         data = JSON.parse(data);
         data[name] = undefined;
-        writeFile(this.config.path, JSON.stringify(data), "utf-8");
+        writeFile(this.#config.path, JSON.stringify(data), "utf-8");
       }.bind(this)
     );
   }
 
   static delete() {
-    rm(this.config.path);
+    rm(this.#config.path);
   }
 
-  static configure(options = {}, version = this.config.version) {
+  static configure(
+    options = {},
+    write = false,
+    version = this.#config.version
+  ) {
     if (!isObject(options)) throw new TypeError("Invalid Options Type");
-    this.config.path = setDefault(this.config.path, options.savefilePath);
-    this.config.compression = setDefault(
-      this.config.compression,
+    this.#config.path = setDefault(this.#config.path, options.savefilePath);
+    this.#config.compression = setDefault(
+      this.#config.compression,
       options.compression
     );
-    this.config.encryption = setDefault(
-      this.config.encryption,
+    // Temporaly until I have found a better compression package
+    this.#config.compression = false;
+    this.#config.encryption = setDefault(
+      this.#config.encryption,
       options.encryption
     );
-    this.config.version = version;
+    this.#config.version = version;
+    if (!write) return;
     writeFile(
       this.config_path,
-      JSON.stringify(this.config),
+      JSON.stringify(this.#config),
       "utf-8",
       function (err) {
         if (err) console.warn("Save System Config could not be written");
       }
     );
-    if (!existFile(this.config.path)) {
-      writeFile(this.config.path, "{}", "utf-8", function (err) {
+    if (!existFile(this.#config.path)) {
+      writeFile(this.#config.path, "{}", "utf-8", function (err) {
         if (err) throw new FileError("Could not create Save System");
       });
     }
@@ -112,7 +119,7 @@ class SaveFiles {
 
   static async init() {
     if (!existFile(this.config_path)) {
-      let data = JSON.stringify(this.config);
+      let data = JSON.stringify(this.#config);
       return writeFileSync(this.config_path, data, "utf-8", function (err) {
         if (err) throw new FileError("Could not create Save System");
       });
@@ -124,13 +131,13 @@ class SaveFiles {
     } catch (err) {
       throw new EvalError("Could not load Config for Save System");
     }
-    for (const key of Object.keys(this.config)) {
+    for (const key of Object.keys(this.#config)) {
       if (key === "key") continue;
-      if (data[key]) this.config[key] = data[key];
+      if (data[key]) this.#config[key] = data[key];
     }
   }
 
-  static async #read(path = this.config.path) {
+  static async #read(path = this.#config.path) {
     return (
       (await readFile(path, "utf-8").catch(function () {
         throw new FileError("Could not load File from Path: " + path);
@@ -148,32 +155,32 @@ class SaveFiles {
     } catch (err) {
       throw new EvalError("Could parse Save File");
     }
-    if (name === "%") data = data[this.config.last];
+    if (name === "%") data = data[this.#config.last];
     else data = data[name];
 
     if (!data.startsWith("{")) data = Buffer.from(data, "base64");
-    if (this.config.encryption) data = SaveFiles.decrypt(data);
-    if (this.config.compression) data = compressor.decompress(data);
+    if (this.#config.encryption) data = SaveFiles.#decrypt(data);
+    if (this.#config.compression) data = compressor.decompress(data);
     else data = JSON.parse(data);
     return data;
   }
 
   static #applyOptions(data) {
-    if (this.config.compression) data = compressor.compress(data);
+    if (this.#config.compression) data = compressor.compress(data);
     else data = JSON.stringify(data);
-    if (this.config.encryption) data = SaveFiles.encrypt(data);
+    if (this.#config.encryption) data = SaveFiles.#encrypt(data);
     if (Buffer.isBuffer(data)) data = data.toString("base64");
     return data;
   }
 
-  static encrypt(data) {
+  static #encrypt(data) {
     if (!data) throw new TypeError("Invalid data for Encryption");
     if (typeof data === "string") data = Buffer.from(data, "utf8");
     const iv = randomBytes(16);
     const cipher = createCipheriv(
       "aes-256-ctr",
       createHash("sha256")
-        .update(this.config.key)
+        .update(this.#config.key)
         .digest("base64")
         .slice(0, 32),
       iv
@@ -181,13 +188,13 @@ class SaveFiles {
     return Buffer.concat([iv, cipher.update(data), cipher.final()]);
   }
 
-  static decrypt(data) {
+  static #decrypt(data) {
     if (!data) throw new TypeError("Invalid data for Decryption");
     const input = Buffer.from(data, "base64");
     const decipher = createDecipheriv(
       "aes-256-ctr",
       createHash("sha256")
-        .update(this.config.key)
+        .update(this.#config.key)
         .digest("base64")
         .slice(0, 32),
       input.subarray(0, 16)

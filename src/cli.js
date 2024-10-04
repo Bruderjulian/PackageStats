@@ -108,12 +108,8 @@ var commands = {
     if (typeof options.path !== "string" || options.length == 0)
       throw new ValidationError("Invalid Save Name: " + options.path);
     if (typeof options.wipe !== "boolean") throwOptionError("wipe");
-  },
-  remove: function (options) {
-    SaveFileHandler.remove(options.path);
-  },
-  delete: function () {
-    SaveFileHandler.delete();
+    if (!options.wipe) SaveFileHandler.remove(options.path);
+    else SaveFileHandler.delete();
   },
   configure: function (options) {
     if (!isObject(options)) throw new ValidationError("Invalid Argument Type");
