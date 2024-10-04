@@ -1,0 +1,4 @@
+/node_modules
+/saves/*
+/test.js
+/src/json.js
