@@ -1,11 +1,13 @@
-const { readFileSync, lstatSync, existsSync, createReadStream } = require("fs");
+const { readFileSync, lstatSync, existsSync } = require("fs");
 const {
   normalize: normalizePath,
   resolve: resolvePath,
   basename,
+  join: joinPath,
+  dirname,
+  isAbsolute,
 } = require("path");
-const { createServer } = require("http");
-const zlib = require("zlib");
+const pathValidator = require("path-validation");
 
 function normalize(path, name) {
   if (typeof path !== "string" || path.replace(" ", "") == "") return "";
@@ -66,22 +68,34 @@ function getFileName(path, withExtension = true) {
 }
 
 function getFolderName(path) {
-  return normalize(getFullPath(path).match(/([^\/]*)\/*$/)[1]);
+  let dir = normalize(dirname(path)) + "/";
+  if (dir === "./" || isAbsolute(dir)) return dir;
+  return "./" + dir;
 }
 
-function validateIpAndPort(ip, port) {
-  ip = ip.split(".");
-  return (
-    validateNum(port, 1, 65535) &&
-    ip.length == 4 &&
-    ip.every(function (segment) {
-      return validateNum(parseInt(segment), 0, 255);
-    })
-  );
-}
+function parseSavePath(path) {
+  if (typeof path !== "string" || path.length === 0) {
+    throw new ValidationError("Invalid Save File Path");
+  }
+  if (path.charAt(0) == "$") {
+    path = joinPath(__dirname, "../saves", path.substring(1));
+  }
+  path = getFullPath(path);
 
-function validateNum(num, min, max) {
-  return typeof num === "number" && !isNaN(num) && num >= min && num <= max;
+  var ext = getFileExtension(path);
+  if (ext === "") path += ".json";
+  else if (ext === ".") path += "json";
+  else if (ext !== ".json") {
+    throw new ValidationError("Invalid Save File Extension");
+  }
+
+  if (!pathValidator.isAbsoluteWindowsPath(path.replaceAll("/", "\\"))) {
+    throw new ValidationError("Invalid absolute Save File Path");
+  }
+  if (!existFile(getFolderName(path))) {
+    throw new ValidationError("Folder in Path does not exist");
+  }
+  return path;
 }
 
 function convertFilePath(path = "") {
@@ -93,7 +107,6 @@ function convertFilePath(path = "") {
   });
   return "." + paths.join(".");
 }
-
 
 function processString(string) {
   let strict = string[0] === "%" || string[1] === "%";
@@ -147,97 +160,22 @@ function parseFileSpecificator(str, skipDefaults = false) {
   };
 }
 
-const mimeTypes = {
-  ".ico": "image/x-icon",
-  ".html": "text/html",
-  ".js": "text/javascript",
-  ".mjs": "text/javascript",
-  ".json": "application/json",
-  ".css": "text/css",
-  ".svg": "image/svg+xml",
-  ".woff2": "font/woff2",
-};
-
-const filePathMap = {
-  "/": "./viewer/viewer.html",
-  "/file_tree.js": "./viewer/file_tree.js",
-  "/doubleClick.js": "./viewer/doubleClick.js",
-  "/src/displayEntry.js": "./src/displayEntry.js",
-  "/assets/style.css": "./viewer/assets/style.css",
-  "/assets/file_tree.css": "./viewer/assets/file_tree.css",
-  "/assets/file.svg": "./viewer/assets/file.svg",
-  "/assets/folder_open.svg": "./viewer/assets/folder_open.svg",
-  "/assets/folder_close.svg": "./viewer/assets/folder_close.svg",
-  "/assets/textformat.woff2": "./viewer/assets/textformat.woff2",
-
-  "/favicon.ico": "viewer/assets/favicon.ico",
-};
-
-var server;
-function startViewer(options, args) {
-  if (server) closeViewer();
-  server = createServer(function (req, response) {
-    var path = normalize(req.url.replace(/[^a-z0-9/.]/gi, "_"));
-    if (filePathMap.hasOwnProperty(path)) path = filePathMap[path];
-    else if (path === "/" + getFileName(args.path)) {
-      path = "./" + getFileName(args.path);
-    } else if (path == "/args.data") {
-      response.writeHead(200, {
-        "Content-Type": "application/json",
-      });
-      response.write(JSON.stringify(args));
-      response.end();
-      return;
-    } else path = undefined;
-    if (!path) throw new EvalError("Could not start the viewer");
-
-    let encoding = req.headers["accept-encoding"] || "";
-    if (encoding.match(/\bgzip\b/)) encoding = "Gzip";
-    else if (encoding.match(/\bdeflate\b/)) encoding = "Deflate";
-    else encoding = "";
-    createReadStream(path)
-      .pipe(zlib["create" + encoding]())
-      .pipe(response);
-
-    response.writeHead(200, {
-      "Content-Type": mimeTypes[getFileExtension(path)] || mimeTypes[".html"],
-      "Content-Encoding": encoding.toLowerCase(),
-      "Cache-Control": "no-cache",
-      //"Cache-Control": "max-age=150",
-    });
-  }).listen(options.port, options.ip);
-  console.log(openViewerMessage(options.ip, options.port));
-  let onDataCallBack = (data) => {
-    const byteArray = [...data];
-    if (byteArray.length <= 0 || byteArray[0] !== 3) return;
-    closeViewer();
-    process.stdin.removeListener("data", onDataCallBack);
-    process.stdin.setRawMode(false);
-    process.exit(1);
-  };
-  process.stdin.setRawMode(true);
-  process.stdin.on("data", onDataCallBack);
+function throwOptionError(key) {
+  throw new ValidationError(
+    "Invalid Type for Option '" + key[0].toUpperCase() + key.substring(1) + "'"
+  );
 }
 
-function closeViewer() {
-  if (!server) return;
-  console.log("Stopping Viewer...");
-  server.close();
-  setImmediate(function () {
-    server.emit("close");
-  });
+function setDefault(defaultValue, ...args) {
+  for (let i = 0; i < args.length; i++) {
+    if (typeof args[i] !== undefined) return args[i];
+  }
+  return defaultValue;
 }
 
 const ColorRed = "\x1b[31m";
-const ColorGreen = "\x1b[32m";
 const coloredLink = (text, color, url) =>
   "\u001B]8;;" + url + "\u0007" + color + text + "\x1b[0m\u001B]8;;\u0007";
-
-const openViewerMessage = function (ip, port) {
-  return `  Starting Viewer on ${ip}:${port}
-  ${coloredLink("Open Viewer", ColorGreen, `http://${ip}:${port}`)}
-  To Stop Viewer press \x1b[1mCTRL+C\x1b[0m`;
-};
 
 const helpMenu = `    ${coloredLink(
   "Usage",
@@ -285,12 +223,18 @@ const helpMenu = `    ${coloredLink(
 class ValidationError extends Error {
   constructor(message = "", ...args) {
     super(message, ...args);
-    this.message = "Error at Validation: " + message;
+    this.message = message;
+  }
+}
+
+class FileError extends Error {
+  constructor(message = "", ...args) {
+    super(message, ...args);
+    this.message = message;
   }
 }
 
 module.exports = {
-  isObject,
   normalize,
   isFile,
   isFolder,
@@ -300,11 +244,16 @@ module.exports = {
   getFullPath,
   getFileName,
   getFolderName,
+
+  parseSavePath,
   convertFilePath,
   parseFileSpecificator,
-  startViewer,
-  validateIpAndPort,
-  closeViewer,
+
+  isObject,
+  setDefault,
+  coloredLink,
   ValidationError,
+  FileError,
+  throwOptionError,
   helpMenu,
 };

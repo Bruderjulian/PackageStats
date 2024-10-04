@@ -59,8 +59,8 @@ async function scanFolder() {
   var children = await loopFolder();
   return {
     lines: children.reduce((n, { lines }) => n + lines, 0),
-    name: getFolderName(currentPath),
-    path: normalize(currentPath),
+    name: getFileName(currentPath, true),
+    path: getFolderName(currentPath),
     fullPath: getFullPath(currentPath),
     isFile: false,
     isFolder: true,
