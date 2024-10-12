@@ -11,8 +11,9 @@ const {
   parseSavePath,
 } = require("./utils.js");
 const printTree = require("./printTree.js");
-const scanDir = require("./scan.js");
+const Scanner = require("./scan.js");
 const SaveFileHandler = require("./SaveFileHandler.js");
+
 const {
   startViewer,
   closeViewer,
@@ -136,7 +137,7 @@ var commands = {
 
 async function handleScan(options) {
   let isExcluded = parseFileSpecificator(options.exclude);
-  var tree = await scanDir({
+  var tree = await Scanner.scan({
     path: options.path,
     isExcluded:
       isExcluded ||
