@@ -11,7 +11,7 @@ const {
   parseSavePath,
 } = require("./utils.js");
 const printTree = require("./printTree.js");
-const Scanner = require("./scan.js");
+const Scanner = require("./Scanner.js");
 const SaveFileHandler = require("./SaveFileHandler.js");
 
 const {
