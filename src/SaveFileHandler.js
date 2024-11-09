@@ -1,5 +1,4 @@
-const { writeFile, readFile, rm } = require("fs/promises");
-const { writeFileSync, readFileSync } = require("fs");
+const { readFileSync, writeFile, rm, readFile } = require("fs");
 const {
   isObject,
   existFile,
@@ -7,8 +6,7 @@ const {
   ValidationError,
   setDefault,
 } = require("./utils.js");
-
-const compressor = require("hjson-compressor");
+const compressor = require("./compressor.js");
 const {
   randomBytes,
   createCipheriv,
@@ -18,13 +16,13 @@ const {
 
 class SaveFiles {
   static config_path = "saves/config.json";
+  static key = this.#hashKey("secretKey1234");
   static #config = {
     path: "saves/saves.json",
     version: 1.0,
     amount: 0,
     encryption: false,
     compression: false,
-    key: "secretKey1234",
     last: "",
   };
 
@@ -34,18 +32,14 @@ class SaveFiles {
     if (name.length == 0) name = "unnamed" + this.#config.amount;
     this.#config.last = name;
 
-    var str = this.#applyOptions(tree);
+    var data = this.#applyOptions(tree);
     this.#config.amount++;
 
-    this.#read().then(
-      function (data) {
-        if (typeof data !== "string") return;
-        data = JSON.parse(data);
-        data[name] = str;
-        writeFile(this.#config.path, JSON.stringify(data), "utf-8");
-      }.bind(this)
-    );
-    this.configure();
+    this.#readSave().then(function (saves) {
+      saves[name] = data;
+      SaveFiles.#writeSave(data);
+    });
+    this.#saveConfig();
   }
 
   static async load(name) {
@@ -53,28 +47,31 @@ class SaveFiles {
       throw new ValidationError("Invalid Save Name: " + name);
     }
     // if name is "%", the last scan will be returned
-    return this.#parseJSON(await this.#read(), name);
+    return this.#parseJSON(await this.#readSave(), name);
   }
 
   static async exists(name) {
+    if (typeof name !== "string" || name.length == 0) {
+      throw new ValidationError("Invalid Save Name: " + name);
+    }
     if (!existFile(this.#config.path)) return false;
     if (!name || name == "") return true;
     try {
-      return JSON.parse(await this.#read()).hasOwnProperty(name);
+      return (await this.#readSave()).hasOwnProperty(name);
     } catch (err) {
       return false;
     }
   }
 
   static remove(name) {
-    if (typeof name !== "string" || name.length == 0)
-      throw new ValidationError("Invalid Save Name");
-    this.#read().then(
-      function (data) {
-        if (typeof data !== "string" || data.indexOf(name) == -1) return;
-        data = JSON.parse(data);
-        data[name] = undefined;
-        writeFile(this.#config.path, JSON.stringify(data), "utf-8");
+    if (typeof name !== "string" || name.length == 0) {
+      throw new ValidationError("Invalid Save Name: " + name);
+    }
+    this.#readSave().then(
+      function (saves) {
+        if (!saves.hasOwnProperty(name)) return;
+        saves[name] = undefined;
+        this.#writeSave(saves);
       }.bind(this)
     );
   }
@@ -83,82 +80,60 @@ class SaveFiles {
     rm(this.#config.path);
   }
 
-  static configure(
-    options = {},
-    write = false,
-    version = this.#config.version
-  ) {
+  static configure(options = {}, version = this.#config.version) {
     if (!isObject(options)) throw new TypeError("Invalid Options Type");
     this.#config.path = setDefault(this.#config.path, options.savefilePath);
     this.#config.compression = setDefault(
       this.#config.compression,
       options.compression
     );
-    // Temporaly until I have found a better compression package
-    this.#config.compression = false;
     this.#config.encryption = setDefault(
       this.#config.encryption,
       options.encryption
     );
     this.#config.version = version;
-    if (!write) return;
-    writeFile(
-      this.config_path,
-      JSON.stringify(this.#config),
-      "utf-8",
-      function (err) {
-        if (err) console.warn("Save System Config could not be written");
-      }
+    this.#config.encryption = setDefault(
+      this.#config.encryption,
+      options.encryption
     );
-    if (!existFile(this.#config.path)) {
-      writeFile(this.#config.path, "{}", "utf-8", function (err) {
-        if (err) throw new FileError("Could not create Save System");
-      });
+    if (typeof options.key === "string" && options.key.length > 4) {
+      this.key = this.#hashKey(options.key);
     }
+
+    this.#saveConfig();
   }
 
-  static async init() {
-    if (!existFile(this.config_path)) {
-      let data = JSON.stringify(this.#config);
-      return writeFileSync(this.config_path, data, "utf-8", function (err) {
-        if (err) throw new FileError("Could not create Save System");
-      });
-    }
+  static init() {
+    if (!existFile(this.config_path)) return this.#saveConfig();
+
     try {
-      var data = readFileSync(this.config_path, "utf-8") || "{}";
-      data = JSON.parse(data);
+      var data = readFileSync(this.config_path, "ascii");
+      data = JSON.parse(data || "{}");
       if (!isObject(data)) throw "";
     } catch (err) {
       throw new EvalError("Could not load Config for Save System");
     }
     for (const key of Object.keys(this.#config)) {
       if (key === "key") continue;
-      if (data[key]) this.#config[key] = data[key];
+      if (typeof data[key] !== "undefined") this.#config[key] = data[key];
     }
-  }
 
-  static async #read(path = this.#config.path) {
-    return (
-      (await readFile(path, "utf-8").catch(function () {
-        throw new FileError("Could not load File from Path: " + path);
-      })) || "{}"
-    );
+    if (!existFile(this.#config.path)) {
+      this.#config.amount = 0;
+      return this.#writeSave("{}");
+    } else {
+      try {
+        this.#readSave().then(function (str) {
+          this.#config.amount = Object.keys(JSON.parse(str)).length;
+        }.bind(this));
+      } catch (e) {}
+    }
   }
 
   static #parseJSON(data = "", name = "") {
-    if (typeof data !== "string" || data == "") {
-      throw new TypeError("Invalid JSON Data Type");
-    }
-    try {
-      data = JSON.parse(data);
-      if (!isObject(data)) return "";
-    } catch (err) {
-      throw new EvalError("Could parse Save File");
-    }
     if (name === "%") data = data[this.#config.last];
     else data = data[name];
 
-    if (!data.startsWith("{")) data = Buffer.from(data, "base64");
     if (this.#config.encryption) data = SaveFiles.#decrypt(data);
     if (this.#config.compression) data = compressor.decompress(data);
     else data = JSON.parse(data);
@@ -169,40 +144,64 @@ class SaveFiles {
     if (this.#config.compression) data = compressor.compress(data);
     else data = JSON.stringify(data);
     if (this.#config.encryption) data = SaveFiles.#encrypt(data);
-    if (Buffer.isBuffer(data)) data = data.toString("base64");
     return data;
   }
 
   static #encrypt(data) {
-    if (!data) throw new TypeError("Invalid data for Encryption");
-    if (typeof data === "string") data = Buffer.from(data, "utf8");
     const iv = randomBytes(16);
-    const cipher = createCipheriv(
-      "aes-256-ctr",
-      createHash("sha256")
-        .update(this.#config.key)
-        .digest("base64")
-        .slice(0, 32),
-      iv
+    const cipher = createCipheriv("aes-256-ctr", this.key, iv);
+    return (
+      iv.toString("base64") +
+      cipher.update(data, "ascii", "ascii") +
+      cipher.final("ascii")
     );
-    return Buffer.concat([iv, cipher.update(data), cipher.final()]);
   }
 
   static #decrypt(data) {
-    if (!data) throw new TypeError("Invalid data for Decryption");
-    const input = Buffer.from(data, "base64");
-    const decipher = createDecipheriv(
-      "aes-256-ctr",
-      createHash("sha256")
-        .update(this.#config.key)
-        .digest("base64")
-        .slice(0, 32),
-      input.subarray(0, 16)
+    const iv = Buffer.from(data.substring(0, 24), "base64");
+    const decipher = createDecipheriv("aes-256-ctr", this.key, iv);
+    return (
+      decipher.update(data.substring(24), "ascii", "ascii") +
+      decipher.final("ascii")
     );
-    return Buffer.concat([
-      decipher.update(input.subarray(16)),
-      decipher.final(),
-    ]);
+  }
+
+  static #hashKey(key) {
+    return createHash("sha256").update(key).digest();
+  }
+
+  static async #readSave(path = this.#config.path) {
+    return new Promise(function (resolve, reject) {
+      readFile(path, "ascii", function (err, data) {
+        if (err || typeof data !== "string" || data.length < 2) {
+          reject(new FileError("Could not read Save File from Path: " + path));
+        }
+        try {
+          data = JSON.parse(data || "{}") || {};
+          if (!isObject(data)) throw "";
+          resolve(data);
+        } catch {
+          reject(new EvalError("Could not parse Save File from Path: " + path));
+        }
+      });
+    });
+  }
+
+  static async #writeSave(data) {
+    writeFile(this.#config.path, JSON.stringify(data), "ascii", function (err) {
+      if (err) throw new FileError("Could not write to Save File");
+    });
+  }
+
+  static #saveConfig() {
+    writeFile(
+      this.config_path,
+      JSON.stringify(this.#config),
+      "ascii",
+      function (err) {
+        if (err) console.warn("PackageStats Configs could not be written to");
+      }
+    );
   }
 }
 
