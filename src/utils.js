@@ -74,7 +74,7 @@ function getFolderName(path) {
 }
 
 function parseSavePath(path) {
-  if (typeof path !== "string" || path.length === 0) {
+  if (typeof path !== "string" || path.length === 0 || path === "$") {
     throw new ValidationError("Invalid Save File Path");
   }
   if (path.charAt(0) == "$") {
@@ -93,7 +93,7 @@ function parseSavePath(path) {
     throw new ValidationError("Invalid absolute Save File Path");
   }
   if (!existFile(getFolderName(path))) {
-    throw new ValidationError("Folder in Path does not exist");
+    throw new ValidationError("Folder doesn't exist at path: " + path);
   }
   return path;
 }
@@ -161,6 +161,7 @@ function parseFileSpecificator(str, skipDefaults = false) {
 }
 
 function throwOptionError(key) {
+  if (typeof key !== "string") key = "";
   throw new ValidationError(
     "Invalid Type for Option '" + key[0].toUpperCase() + key.substring(1) + "'"
   );
