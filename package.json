@@ -42,7 +42,6 @@
   },
   "homepage": "https://github.com/Bruderjulian/PackageStats#readme",
   "dependencies": {
-    "hjson-compressor": "^1.2.1",
     "path-validation": "^0.2.3",
     "text-extensions": "^2.4.0"
   }
