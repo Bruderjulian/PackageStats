@@ -1,4 +1,2 @@
-/node_modules
+/node_modules/*
 /saves/*
-/test.js
-/src/json.js
