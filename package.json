@@ -44,5 +44,9 @@
     "hjson-compressor": "^1.2.1",
     "path-validation": "^0.2.3",
     "text-extensions": "^2.4.0"
+  },
+  "devDependencies": {
+    "pta": "^1.3.0",
+    "zora": "^6.0.0"
   }
 }
