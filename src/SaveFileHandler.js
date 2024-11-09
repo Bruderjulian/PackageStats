@@ -19,7 +19,7 @@ class SaveFiles {
   static key = this.#hashKey("secretKey1234");
   static #config = {
     path: "saves/saves.json",
-    version: 1.0,
+    version: "1.4.1",
     amount: 0,
     encryption: false,
     compression: false,
@@ -55,7 +55,7 @@ class SaveFiles {
       throw new ValidationError("Invalid Save Name: " + name);
     }
     if (!existFile(this.#config.path)) return false;
-    if (!name || name == "") return true;
+    if (typeof name === "undefined" || name.length === 0) return true;
     try {
       return (await this.#readSave()).hasOwnProperty(name);
     } catch (err) {

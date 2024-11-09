@@ -1,7 +1,7 @@
 {
   "name": "packagestats",
-  "version": "1.3.2",
-  "description": "displays statistics about your package",
+  "version": "1.4.1",
+  "description": "displays file/content Info about your package",
   "main": "index.js",
   "scripts": {
     "packageStats:scan": "node index.js scan",
@@ -9,12 +9,11 @@
     "packageStats:inspect": "node --no-warnings index.js inspect",
     "packageStats:openViewer": "node index.js openViewer",
     "packageStats:closeViewer": "node index.js closeViewer",
-    "packageStats:cleanup": "node index.js cleanup",
     "packageStats:help": "node index.js help",
     "packageStats:version": "node index.js version",
-    "packageStats:setSavePath": "node index.js setSavePath",
-    "commit": "git add . && git commit -m",
-    "postcommit": "git push --all"
+    "packageStats:manageSaves": "node index.js manageSaves",
+    "packageStats:configure": "node index.js configure",
+    "test": "pta tests/**"
   },
   "author": "BruderJulian",
   "license": "MIT",

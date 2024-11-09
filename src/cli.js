@@ -104,13 +104,14 @@ var commands = {
     return packageVersion;
   },
   manageSaves: function (options) {
+    if (!isObject(options)) throw new ValidationError("Invalid Argument Type");
     options.path = setDefault("", options.path, options.p);
-    options.wipe = setDefault(false, options.wipe);
+    options.all = setDefault(false, options.all);
     if (typeof options.path !== "string" || options.length == 0)
       throw new ValidationError("Invalid Save Name: " + options.path);
-    if (typeof options.wipe !== "boolean") throwOptionError("wipe");
-    if (!options.wipe) SaveFileHandler.remove(options.path);
-    else SaveFileHandler.delete();
+    if (typeof options.all !== "boolean") throwOptionError("all");
+    if (!options.all) SaveFileHandler.delete();
+    else SaveFileHandler.remove(options.path);
   },
   configure: function (options) {
     if (!isObject(options)) throw new ValidationError("Invalid Argument Type");
